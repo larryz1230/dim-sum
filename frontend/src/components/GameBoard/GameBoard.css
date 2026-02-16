@@ -1,0 +1,60 @@
+.game-board {
+  width: fit-content;
+  background-color: #8B4513; /* Dark brown from Figma design */
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.game-board--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #fff;
+  font-size: 18px;
+}
+
+.game-board--disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.game-board__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.game-board__row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.game-board__selection-summary {
+  text-align: center;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .game-board {
+    padding: 12px;
+  }
+  
+  .game-board__row {
+    gap: 6px;
+  }
+}
+
