@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import bunImage from '../../../../imgs/individual bao 2.png';
 import './GameCell.css';
 
 export const GameCell = ({
@@ -20,6 +21,7 @@ export const GameCell = ({
     <div
       className={`game-cell ${isSelected ? 'game-cell--selected' : ''}`}
       aria-label={`Cell ${cell.row}, ${cell.col} with value ${cell.value}`}
+      style={{ backgroundImage: `url(${bunImage})` }}
     >
       <span className="game-cell__value">{cell.value}</span>
     </div>
