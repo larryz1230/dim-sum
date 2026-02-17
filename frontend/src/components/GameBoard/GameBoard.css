@@ -1,12 +1,13 @@
 .game-board {
   width: fit-content;
-  background-color: #8B4513; /* Dark brown from Figma design */
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #8C3322;
+  border: 6px solid #482E1D;
+  border-radius: 6px;
+  padding: 13px;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .game-board--empty {
@@ -26,13 +27,13 @@
 .game-board__grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   position: relative;
 }
 
 .game-board__row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
   flex-wrap: nowrap;
 }
@@ -50,11 +51,11 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .game-board {
-    padding: 12px;
+    padding: 10px;
   }
   
   .game-board__row {
-    gap: 6px;
+    gap: 5px;
   }
 }
 

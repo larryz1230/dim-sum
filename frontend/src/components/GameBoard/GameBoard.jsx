@@ -48,8 +48,8 @@ export const GameBoard = ({
   const positionToCell = useCallback((pos) => {
     if (!pos || !gridRef.current || !cells.length || !cells[0]?.length) return null;
     
-    const cellWidth = 50;
-    const gap = 8;
+    const cellWidth = 40;
+    const gap = 6;
     const cellSize = cellWidth + gap;
     
     const firstRow = gridRef.current.children[0];
@@ -209,8 +209,8 @@ export const GameBoard = ({
       left: `${left}px`,
       width: `${width}px`,
       height: `${height}px`,
-      border: '2px dashed #F5DEB3',
-      backgroundColor: 'rgba(245, 222, 179, 0.1)',
+      border: '2px dashed #E7BC9B',
+      backgroundColor: 'rgba(231, 188, 155, 0.1)',
       pointerEvents: 'none',
       zIndex: 10,
     };
