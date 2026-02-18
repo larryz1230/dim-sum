@@ -1,0 +1,32 @@
+.timer-bar {
+  background-color: #482E1D;
+  border: 6px solid #482E1D;
+  border-radius: 6px;
+  height: 35px;
+  position: relative;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.timer-bar__fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: #8C3322;
+  transition: width 1s linear;
+  border-radius: 2px;
+}
+
+.timer-bar__text {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  font-family: 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  z-index: 1;
+}
+

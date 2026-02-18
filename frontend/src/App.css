@@ -43,8 +43,13 @@
 
 .app__game-container {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.app__game-container > * {
+  flex-shrink: 0;
 }
 
 .app__settings-button {
