@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { GameBoard } from './components/GameBoard';
+import { Settings } from './components/Settings';
+import { Login } from './components/Login';
+import settingsIcon from '../../imgs/Settings.png';
 import './App.css';
 
 // Create a sample game board
@@ -23,9 +26,11 @@ const createSampleBoard = (rows = 12, cols = 10) => {
 };
 
 function App() {
-  const [cells, setCells] = useState(createSampleBoard(12, 10));
+  const [cells, setCells] = useState(createSampleBoard(13, 17));
   const [selectedCellIds, setSelectedCellIds] = useState(new Set());
   const [disabled, setDisabled] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   const handleSelectionChange = (newSelection) => {
     setSelectedCellIds(newSelection);
@@ -47,6 +52,24 @@ function App() {
           targetSum={10}
         />
       </div>
+      <button 
+        className="app__settings-button"
+        onClick={() => setShowSettings(true)}
+      >
+        <img src={settingsIcon} alt="Settings" />
+      </button>
+      {showSettings && (
+        <Settings 
+          onClose={() => setShowSettings(false)}
+          onLoginClick={() => {
+            setShowSettings(false);
+            setShowLogin(true);
+          }}
+        />
+      )}
+      {showLogin && (
+        <Login onClose={() => setShowLogin(false)} />
+      )}
     </div>
   );
 }
