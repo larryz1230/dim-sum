@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Timer.css';
 
-export const Timer = ({ boardWidth, onTimeUp }) => {
+export const Timer = ({ boardWidth, onTimeUp, isPaused = false }) => {
   const [timeLeft, setTimeLeft] = useState(60);
   const timerRef = useRef(null);
 
   useEffect(() => {
-    if (timeLeft > 0) {
+    if (!isPaused && timeLeft > 0) {
       timerRef.current = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
       }, 1000);
-    } else if (onTimeUp) {
+    } else if (!isPaused && timeLeft === 0 && onTimeUp) {
       onTimeUp();
     }
 
@@ -19,7 +19,7 @@ export const Timer = ({ boardWidth, onTimeUp }) => {
         clearTimeout(timerRef.current);
       }
     };
-  }, [timeLeft, onTimeUp]);
+  }, [timeLeft, onTimeUp, isPaused]);
 
   const progress = (timeLeft / 60) * 100;
 

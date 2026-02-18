@@ -41,6 +41,13 @@
   cursor: not-allowed;
 }
 
+.app__main-content {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
 .app__game-container {
   display: flex;
   flex-direction: column;
@@ -49,6 +56,13 @@
 }
 
 .app__game-container > * {
+  flex-shrink: 0;
+}
+
+.app__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   flex-shrink: 0;
 }
 

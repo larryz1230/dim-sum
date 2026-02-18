@@ -4,6 +4,7 @@ import { Settings } from './components/Settings';
 import { Login } from './components/Login';
 import { Timer } from './components/Timer';
 import { GameOver } from './components/GameOver';
+import { Score } from './components/Score';
 import settingsIcon from '../../imgs/Settings.png';
 import './App.css';
 
@@ -35,6 +36,8 @@ function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
   const [gameResult, setGameResult] = useState(null); // 'win' or 'lose'
+  const [score, setScore] = useState(0);
+  const [gameMode, setGameMode] = useState('singleplayer'); // 'singleplayer' or 'multiplayer'
   const [boardWidth, setBoardWidth] = useState(null);
   const [gameKey, setGameKey] = useState(0); // Key to reset timer on replay
   const boardContainerRef = useRef(null);
@@ -44,6 +47,25 @@ function App() {
   };
 
   const handleCellsUpdate = (updatedCells) => {
+    // Count how many cells were cleared (value changed to 0)
+    const previousCells = cells;
+    let clearedCount = 0;
+    
+    for (let row = 0; row < previousCells.length; row++) {
+      for (let col = 0; col < previousCells[row].length; col++) {
+        const prevCell = previousCells[row][col];
+        const newCell = updatedCells[row][col];
+        if (prevCell.value !== 0 && newCell.value === 0) {
+          clearedCount++;
+        }
+      }
+    }
+    
+    // Update score: +1 point per number cleared
+    if (clearedCount > 0) {
+      setScore(prevScore => prevScore + clearedCount);
+    }
+    
     setCells(updatedCells);
   };
 
@@ -57,6 +79,7 @@ function App() {
   const handleReplay = () => {
     setShowGameOver(false);
     setGameResult(null);
+    setScore(0);
     setCells(createSampleBoard(13, 17));
     setSelectedCellIds(new Set());
     setGameKey(prev => prev + 1); // Reset timer by changing key
@@ -86,18 +109,28 @@ function App() {
 
   return (
     <div className="app">
-      <div className="app__game-container" ref={boardContainerRef}>
+      <div className="app__main-content">
+        <div className="app__game-container" ref={boardContainerRef}>
         <GameBoard
           cells={cells}
           selectedCellIds={selectedCellIds}
           onSelectionChange={handleSelectionChange}
           onCellsUpdate={handleCellsUpdate}
-          disabled={disabled}
+          disabled={disabled || showSettings || showLogin}
           targetSum={10}
         />
-        {boardWidth && !showGameOver && (
-          <Timer key={gameKey} boardWidth={boardWidth} onTimeUp={handleTimeUp} />
-        )}
+          {boardWidth && !showGameOver && (
+            <Timer 
+              key={gameKey} 
+              boardWidth={boardWidth} 
+              onTimeUp={handleTimeUp}
+              isPaused={showSettings || showLogin}
+            />
+          )}
+        </div>
+        <div className="app__sidebar">
+          <Score score={score} gameMode={gameMode} />
+        </div>
       </div>
       <button 
         className="app__settings-button"
@@ -112,6 +145,8 @@ function App() {
             setShowSettings(false);
             setShowLogin(true);
           }}
+          gameMode={gameMode}
+          onGameModeChange={setGameMode}
         />
       )}
       {showLogin && (
@@ -120,6 +155,7 @@ function App() {
       {showGameOver && (
         <GameOver 
           result={gameResult}
+          score={score}
           onReplay={handleReplay}
           onClose={() => setShowGameOver(false)}
         />
