@@ -5,7 +5,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Matchmake from "./pages/Matchmake";
 import { AuthProvider } from "./hooks/useAuth";
-import ProtectedRoute from "./components/ProtectedRoute";
+import DefaultRoute from "./components/DefaultRoute";
 import Game from "./pages/Game";
 
 const App: React.FC = () => {
@@ -13,16 +13,16 @@ const App: React.FC = () => {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route element={<ProtectedRoute />}>
+          <Route element={<DefaultRoute mode="public" />}>
+            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
+          <Route element={<DefaultRoute mode="protected" />}>
             <Route path="/dashboard" element={<Dashboard />} />
-          </Route>
-          <Route element={<ProtectedRoute />}>
             <Route path="/game" element={<Game />} />
+            <Route path="/matchmake" element={<Matchmake />} />
           </Route>
-          <Route path="/matchmake" element={<Matchmake />} />
         </Routes>
       </Router>
     </AuthProvider>
