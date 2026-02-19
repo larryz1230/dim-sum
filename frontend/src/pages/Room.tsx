@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
+import { io, Socket } from "socket.io-client";
 import { GameBoard } from "../components/GameBoard";
 import { Settings } from "../components/Settings";
 import { Login } from "../components/Login";
@@ -7,45 +9,79 @@ import { GameOver } from "../components/GameOver";
 import { Score } from "../components/Score";
 import { Leaderboard } from "../components/Leaderboard";
 
-// WHY ISN:
+// TODO: fix this linting issue, it shows up but gives an error.
 import settingsIcon from "../imgs/Settings.png";
 
 import "../App.css";
+const SOCKET_URL = "http://localhost:9090";
 
-type GameMode = "singleplayer" | "multiplayer";
-type GameResult = "win" | "lose" | null;
+export default function Room() {
+  type GameMode = "singleplayer" | "multiplayer";
+  type GameResult = "win" | "lose" | null;
 
-type Cell = {
-  id: string;
-  value: number; // 0 means cleared
-  row: number;
-  col: number;
-};
+  type Cell = {
+    id: string;
+    value: number; // 0 means cleared
+    row: number;
+    col: number;
+  };
 
-type Board = Cell[][];
+  type Board = Cell[][];
+  type GameStateEmit = {
+    roomId: string;
+    Board: Board;
+    score1: number;
+    score2: number;
+    timer: number;
+  };
 
-// Create a sample game board
-const createSampleBoard = (rows = 12, cols = 10): Board => {
-  const cells: Board = [];
+  const { matchId } = useParams<{ matchId: string }>();
 
-  for (let row = 0; row < rows; row++) {
-    const rowCells: Cell[] = [];
-    for (let col = 0; col < cols; col++) {
-      rowCells.push({
-        id: `cell-${row}-${col}`,
-        value: Math.floor(Math.random() * 9) + 1, // Random 1-9
-        row,
-        col,
-      });
-    }
-    cells.push(rowCells);
-  }
+  const socketRef = useRef<Socket | null>(null);
+  const [connected, setConnected] = useState(false);
+  const [messages, setMessages] = useState<string[]>([]);
+  const [input, setInput] = useState("");
+  const [count, setCount] = useState(0);
 
-  return cells;
-};
+  useEffect(() => {
+    if (!matchId) return;
 
-export default function App(): React.ReactElement {
-  const [cells, setCells] = useState<Board>(() => createSampleBoard(13, 17));
+    const s = io(SOCKET_URL);
+    socketRef.current = s;
+
+    s.on("connect", () => {
+      setConnected(true);
+      s.emit("room:join", { roomId: matchId });
+    });
+
+    s.on("room:game_state", (gameState: GameStateEmit) => {
+      console.log("Received game state for room:", matchId);
+      setCells(gameState.Board);
+    });
+
+    // receive chat messages
+    s.on("room:message", (msg: string) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+
+    // receive counter updates
+    s.on("room:count", (newCount: number) => {
+      setCount(newCount);
+    });
+
+    return () => {
+      s.disconnect();
+      socketRef.current = null;
+    };
+  }, [matchId]);
+
+  const increment = () => {
+    if (!socketRef.current) return;
+    console.log("Incrementing count for room:", matchId);
+    socketRef.current.emit("room:increment", { roomId: matchId });
+  };
+
+  const [cells, setCells] = useState<Board | null>(() => null);
   const [selectedCellIds, setSelectedCellIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -62,9 +98,11 @@ export default function App(): React.ReactElement {
 
   const handleSelectionChange = (newSelection: Set<string>) => {
     setSelectedCellIds(newSelection);
+    console.log("Selected cells: ", newSelection);
   };
 
   const handleCellsUpdate = (updatedCells: Board) => {
+    if (!cells) return;
     const previousCells = cells;
     let clearedCount = 0;
 
@@ -89,7 +127,7 @@ export default function App(): React.ReactElement {
     setShowGameOver(false);
     setGameResult(null);
     setScore(0);
-    setCells(createSampleBoard(13, 17));
+    // setCells(createSampleBoard(13, 17));
     setSelectedCellIds(new Set());
     setGameKey((prev) => prev + 1);
   };
@@ -114,6 +152,10 @@ export default function App(): React.ReactElement {
     };
   }, [cells]);
 
+  if (!cells) {
+    return <div>Loading game...</div>;
+  }
+
   return (
     <div className="app">
       <div className="app__main-content">
@@ -125,6 +167,8 @@ export default function App(): React.ReactElement {
             onCellsUpdate={handleCellsUpdate}
             // If onCellClick is required, keep this:
             onCellClick={() => {}}
+            socketRef={socketRef as any}
+            matchId={matchId as any}
             disabled={showSettings || showLogin}
             targetSum={10}
           />

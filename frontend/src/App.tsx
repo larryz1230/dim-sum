@@ -7,6 +7,7 @@ import Matchmake from "./pages/Matchmake";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Game from "./pages/Game";
+import Room from "./pages/Room";
 
 const App: React.FC = () => {
   return (
@@ -23,6 +24,7 @@ const App: React.FC = () => {
             <Route path="/game" element={<Game />} />
           </Route>
           <Route path="/matchmake" element={<Matchmake />} />
+          <Route path="/room/:matchId" element={<Room />} />
         </Routes>
       </Router>
     </AuthProvider>
