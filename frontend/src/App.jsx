@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GameBoard } from './components/GameBoard';
+import { io } from 'socket.io-client';
 import './App.css';
 
 // Create a sample game board
@@ -26,6 +27,23 @@ function App() {
   const [cells, setCells] = useState(createSampleBoard(12, 10));
   const [selectedCellIds, setSelectedCellIds] = useState(new Set());
   const [disabled, setDisabled] = useState(false);
+
+  useEffect(() => {
+    const socket = io("http://localhost:8080");
+
+    socket.on("connect", () => {
+      console.log("socket connected", socket.id);
+      socket.emit("ping");
+    });
+
+    socket.on("pong", () => {
+      console.log("pong received from server");
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   const handleSelectionChange = (newSelection) => {
     setSelectedCellIds(newSelection);
