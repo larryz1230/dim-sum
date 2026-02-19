@@ -110,7 +110,7 @@ export default function Matchmake() {
         };
     }, []);
 
-    // GPT generated temp placeholders and styling. Consider replacing
+    // temp placeholders and styling. Consider replacing
     return (
         <div style={{ padding: 24, fontFamily: "system-ui, sans-serif" }}>
             <h2>Matchmaking Test</h2>
