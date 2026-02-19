@@ -1,10 +1,10 @@
-import express,  { Request, Response } from 'express';
 import http from 'http';
 import { Server } from "socket.io";
-import { SocketEvents } from "./utils/SocketEvents"; 
+import { createApp } from "./app";
+import { registerSockets } from "./sockets/RegisterSockets";
+import { config } from "./config";
 
-const app = express();
-
+const app = createApp();
 const httpServer = http.createServer(app);
 
 const io = new Server(httpServer, {
@@ -14,23 +14,8 @@ const io = new Server(httpServer, {
     }
 });
 
-app.use(express.json());
+registerSockets(io);
 
-app.get('/', (req: Request, res: Response) => {
-    res.json({ status: "Server is running." });
-})
-
-io.on('connection', (socket) => {
-    console.log("User connected: ", socket.id);
-    socket.on(SocketEvents.Ping, () => {
-        socket.emit("pong");
-    });
-
-    socket.on("disconnect", () => {
-        console.log("User disconnected: ", socket.id);
-    });
-});
-
-httpServer.listen(8080, () => {
-    console.log("Server running on port 8080: http://localhost:8080");
+httpServer.listen(config.port, () => {
+    console.log(`Server running on port ${config.port}: http://localhost:8080`);
 })
