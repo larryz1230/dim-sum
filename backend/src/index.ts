@@ -4,6 +4,8 @@ import { createApp } from "./app";
 import { registerSockets } from "./sockets/RegisterSockets";
 import { config } from "./config";
 
+
+console.log("INDEX FILE LOADED");
 const app = createApp();
 const httpServer = http.createServer(app);
 
@@ -17,5 +19,5 @@ const io = new Server(httpServer, {
 registerSockets(io);
 
 httpServer.listen(config.port, () => {
-    console.log(`Server running on port ${config.port}: http://localhost:8080`);
+    console.log(`Server running on port ${config.port}: http://localhost:9090`);
 })
