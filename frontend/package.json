@@ -1,0 +1,40 @@
+{
+  "name": "cs130-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2.95.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "firebase": "^12.9.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.0"
+  },
+  "scripts": {
+  "dev": "vite",
+  "build": "tsc && vite build",
+  "preview": "vite preview"
+},
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.4",
+    "vite": "^7.3.1"
+  }
+}
