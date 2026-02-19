@@ -1,0 +1,2 @@
+export { GameOver } from './GameOver';
+

@@ -1,0 +1,2 @@
+export { Score } from './Score';
+

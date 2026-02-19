@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+
+.score-panel {
+  background-color: #8C3322;
+  border: 6px solid #482E1D;
+  border-radius: 6px;
+  padding: 20px 30px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+.score-panel__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.score-panel__label {
+  font-family: 'Nunito', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: white;
+}
+
+.score-panel__value {
+  font-family: 'Nunito', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+}
+
