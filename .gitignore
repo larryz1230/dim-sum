@@ -1,2 +1,9 @@
-.env
-node_modules
+frontend/.env
+
+frontend/node_modules/
+
+dist/
+build/
+
+# macOS
+.DS_Store
