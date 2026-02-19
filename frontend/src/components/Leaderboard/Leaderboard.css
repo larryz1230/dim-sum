@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+
+.leaderboard-panel {
+  background-color: #8C3322;
+  border: 6px solid #482E1D;
+  border-radius: 6px;
+  padding: 20px 30px;
+  min-width: 200px;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard-title {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  color: white;
+  text-align: center;
+  margin: 0 0 20px 0;
+  text-transform: uppercase;
+}
+
+.leaderboard-top-three {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.leaderboard-top-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.leaderboard-bun {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.leaderboard-bun--gold {
+  width: 80px;
+  height: 80px;
+  transform: translateY(-15px);
+}
+
+.leaderboard-bun--silver {
+  width: 70px;
+  height: 70px;
+}
+
+.leaderboard-bun--bronze {
+  width: 60px;
+  height: 60px;
+}
+
+.leaderboard-top-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.leaderboard-username {
+  font-family: 'Nunito', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.leaderboard-score {
+  font-family: 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leaderboard-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.leaderboard-entry-rank {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  min-width: 30px;
+}
+
+.leaderboard-entry-username {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  flex: 1;
+}
+
+.leaderboard-entry-score {
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+}
+

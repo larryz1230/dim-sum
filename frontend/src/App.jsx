@@ -5,6 +5,7 @@ import { Login } from './components/Login';
 import { Timer } from './components/Timer';
 import { GameOver } from './components/GameOver';
 import { Score } from './components/Score';
+import { Leaderboard } from './components/Leaderboard';
 import settingsIcon from '../../imgs/Settings.png';
 import './App.css';
 
@@ -130,6 +131,7 @@ function App() {
         </div>
         <div className="app__sidebar">
           <Score score={score} gameMode={gameMode} />
+          <Leaderboard gameMode={gameMode} />
         </div>
       </div>
       <button 
