@@ -6,7 +6,7 @@ import { Timer } from './components/Timer';
 import { GameOver } from './components/GameOver';
 import { Score } from './components/Score';
 import { Leaderboard } from './components/Leaderboard';
-import settingsIcon from '../../imgs/Settings.png';
+import settingsIcon from './imgs/Settings.png';
 import './App.css';
 
 // Create a sample game board

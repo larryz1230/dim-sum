@@ -1,7 +1,7 @@
 import React from 'react';
-import goldBun from '../../../../imgs/Gold Bun.png';
-import silverBun from '../../../../imgs/Silver Bun.png';
-import bronzeBun from '../../../../imgs/Bronze Bun.png';
+import goldBun from '../../imgs/Gold Bun.png';
+import silverBun from '../../imgs/Silver Bun.png';
+import bronzeBun from '../../imgs/Bronze Bun.png';
 import './Leaderboard.css';
 
 export const Leaderboard = ({ gameMode }) => {

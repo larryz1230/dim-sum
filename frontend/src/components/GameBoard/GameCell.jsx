@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import bunImage from '../../../../imgs/individual bao 2.png';
+import bunImage from '../../imgs/individual bao 2.png';
 import './GameCell.css';
 
 export const GameCell = ({

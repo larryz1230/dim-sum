@@ -77,6 +77,22 @@
   background-color: #F0C9A8;
 }
 
+.login-error {
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  color: #ff6b6b;
+  text-align: center;
+  margin-bottom: 10px;
+  padding: 8px;
+  background-color: rgba(255, 107, 107, 0.1);
+  border-radius: 4px;
+}
+
+.login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .login-buttons {
   display: flex;
   gap: 70px;
