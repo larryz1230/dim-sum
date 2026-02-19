@@ -1,20 +1,14 @@
 import React from 'react';
-import { handleSignOut } from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import useLogout from '../components/Logout/Logout.tsx'
 
 const Dashboard: React.FC = () => {
-    const navigate = useNavigate();
-
-    const onSignOut = async () => {
-        await handleSignOut();
-        navigate('/login');
-    }
+    const logout = useLogout()
 
     return (
         <div>
             <h1>Dashboard</h1>
             <p>Welcome to the Dumpling Destroyer dashboard!</p>
-            <button onClick={onSignOut}>Sign Out</button>
+            <button onClick={logout}>Sign Out</button>
         </div>
     );
 };

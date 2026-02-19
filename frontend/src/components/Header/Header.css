@@ -1,0 +1,41 @@
+.link-header {
+    padding: 1rem;
+    background: #8C3322;
+    border: 6px solid #482E1D;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+}
+
+.nav-left {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-right {
+    margin-left: auto;
+}
+
+.nav-link {
+    position: relative;
+    color: white;
+    text-decoration: none;
+}
+
+.nav-link::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -4px;
+    width: 0;
+    height: 2px;
+    background: white;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}

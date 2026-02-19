@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
-// 
+// public if logged in, protected if not logged in
 type RouteMode = "public" | "protected";
 
 interface DefaultRouteProps {
