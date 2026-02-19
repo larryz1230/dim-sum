@@ -50,4 +50,3 @@ export const handleSignOut = async () => {
     return { error }
   }
 }
-
