@@ -1,17 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import React, { useEffect, useRef, useState } from "react";
+import type { Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
-
-// I recommend an enumeration
-
-type MatchFoundPayload = {
-  matchId: string;
-  playerNumber: 1 | 2;
-};
+import SocketSingleton, { type MatchFoundPayload } from "../Socket";
 
 type Status = "idle" | "searching" | "matched" | "error";
 
-// const SOCKET_URL = (import.meta as any).env?.VITE_SOCKET_URL ?? "http://localhost:9090";
+// shown in UI only (the singleton can use its own SOCKET_URL internally)
 const SOCKET_URL = "http://localhost:9090";
 
 export default function Matchmake() {
@@ -20,101 +14,73 @@ export default function Matchmake() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [matchId, setMatchId] = useState<string>("");
-  const [opponentId, setOpponentId] = useState<string>("");
+  const [opponentId, setOpponentId] = useState<string>(""); // optional (if server sends it)
   const [userSocketId, setUserSocketId] = useState<string>("");
   const [playerNumber, setPlayerNumber] = useState<1 | 2 | -1>(-1);
 
   const navigate = useNavigate();
 
-  // socket init when matchmake starts (not persistent when page loads)
-  // there should only be one, like a singleton
-  const getSocket = () => {
-    if (socketRef.current) {
-      return socketRef.current;
-    }
-
-    const s = io(SOCKET_URL, {
-      autoConnect: false,
-    });
-
-    s.on("connect", () => {
-      console.log("Connected to backend: ", s.id);
-      setUserSocketId(s.id ?? "");
-    });
-
-    s.on("disconnect", () => {
-      setUserSocketId("");
-      setStatus((prev) => (prev === "searching" ? "idle" : prev));
-    });
-
-    s.on("connect_error", (err: any) => {
-      console.log("CONNECT ERROR:", err.message);
-      setErrorMsg(err?.message ?? "Failed to reach server.");
-      setStatus("error");
-    });
-
-    s.on("matchmaking:queued", () => {
-      setStatus("searching");
-      console.log("searching atm");
-      setErrorMsg("");
-      setMatchId("");
-      setOpponentId("");
-    });
-
-    s.on("matchmaking:match_found", (payload: MatchFoundPayload) => {
-      setStatus("matched");
-      setMatchId(payload.matchId);
-      setPlayerNumber(payload.playerNumber);
-    });
-
-    s.on("matchmaking:canceled", () => {
-      setStatus("idle");
-    });
-
-    s.on("matchmaking:error", (msg: string) => {
-      setErrorMsg(msg || "Matchmaking error.");
-      setStatus("error");
-    });
-
-    socketRef.current = s;
-    return s;
-  };
-
-  const startMatchmaking = () => {
-    console.log("Start matchmaking clicked.");
-    const s = getSocket();
-
-    if (!s.connected) {
-      console.log("Connecting socket...");
-      s.connect();
-    }
-    s.emit("matchmaking:start");
-  };
-
-  const cancelMatchmaking = () => {
-    const s = socketRef.current;
-    if (!s) {
-      setStatus("idle");
-      return;
-    }
-    s.emit("matchmaking:cancel");
-  };
-
   useEffect(() => {
+    const s = SocketSingleton.getSocket(); // or getInstance() depending on your singleton
+    socketRef.current = s;
+
+    // Subscribe using your singleton helper (clean + safe)
+    const unsubscribe = SocketSingleton.subscribe({
+      connect: (id) => setUserSocketId(id),
+      connect_error: (msg) => {
+        setErrorMsg(msg || "Failed to reach server.");
+        setStatus("error");
+      },
+
+      "matchmaking:queued": () => {
+        setStatus("searching");
+        setErrorMsg("");
+        setMatchId("");
+        setOpponentId("");
+        setPlayerNumber(-1);
+      },
+
+      "matchmaking:match_found": (
+        payload: MatchFoundPayload & { opponentId?: string },
+      ) => {
+        setStatus("matched");
+        setMatchId(payload.matchId);
+        setPlayerNumber(payload.playerNumber);
+        setOpponentId(payload.opponentId ?? "");
+      },
+
+      "matchmaking:canceled": () => setStatus("idle"),
+
+      "matchmaking:error": (msg) => {
+        setErrorMsg(msg || "Matchmaking error.");
+        setStatus("error");
+      },
+    });
+
+    // keep this if you want auto-connect on mount;
+    // remove if you only want to connect on "Start Matchmaking"
+    // SocketSingleton.ensureConnected();
+
     return () => {
-      const s = socketRef.current;
-      if (s) {
-        try {
-          s.emit("matchmaking:cancel");
-        } catch {}
-        s.removeAllListeners();
-        s.disconnect();
-        socketRef.current = null;
-      }
+      // auto-cancel if leaving mid-search (optional)
+      try {
+        s.emit("matchmaking:cancel");
+      } catch {}
+
+      unsubscribe();
+      socketRef.current = null;
     };
   }, []);
 
-  // temp placeholders and styling. Consider replacing
+  const startMatchmaking = () => {
+    SocketSingleton.ensureConnected();
+    SocketSingleton.getSocket().emit("matchmaking:start");
+  };
+
+  const cancelMatchmaking = () => {
+    SocketSingleton.getSocket().emit("matchmaking:cancel");
+  };
+
   return (
     <div style={{ padding: 24, fontFamily: "system-ui, sans-serif" }}>
       <h2>Matchmaking Test</h2>
@@ -151,16 +117,17 @@ export default function Matchmake() {
           <div style={{ marginBottom: 8 }}>
             <strong>Match found</strong>
           </div>
+
           <div style={{ fontSize: 14 }}>
             Match ID: <code>{matchId}</code>
             <br />
-            Opponent: <code>{opponentId}</code>
+            Opponent: <code>{opponentId || "(unknown)"}</code>
           </div>
 
           <div style={{ marginTop: 12, fontSize: 13, opacity: 0.85 }}>
             Next step: navigate to your game page and join room{" "}
-            <code>{matchId}</code>.
-            You are <strong>Player {playerNumber}</strong>
+            <code>{matchId}</code>. You are{" "}
+            <strong>Player {playerNumber}</strong>
           </div>
 
           <button
@@ -175,10 +142,10 @@ export default function Matchmake() {
 
           <button
             onClick={() => {
-              // For now, just reset. Later you can navigate to /game/:matchId
               setStatus("idle");
               setMatchId("");
               setOpponentId("");
+              setPlayerNumber(-1);
             }}
             style={{ ...btnStyle, marginTop: 12 }}
           >

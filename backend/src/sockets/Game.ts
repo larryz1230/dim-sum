@@ -69,52 +69,44 @@ export function registerGameHandlers(io: Server, socket: Socket) {
   // modified to read only
   socket.on("room:join", ({ roomId }: JoinPayload) => {
     if (!roomId) return;
-
-    const state = games.get(roomId);
-    if (!state) {
-      console.warn(`Room ${roomId} has no game state`);
-      return;
-    }
-
-    socket.join(roomId);
-    socket.emit("room:game_state", state);
+    socket.emit("room:game_state", games.get(roomId));
   });
 
   socket.on("game:update", ({roomId, clearedCells }: GameUpdatePayload) => {
     if (!roomId) return;
+    console.log(`Received game update for room ${roomId} from socket ${socket.id}:`, clearedCells);
 
+    
     const state = games.get(roomId);
     if (!state) {
       return;
     }
-
     const player = state.players[socket.id];
     if (!player) {
       console.warn("Unauthorized game update attempt");
       return;
     }
 
-    // parse cells
-    for (const {row, col} of clearedCells) {
-      const cell = state.Board[row]?.[col];
-      if (!cell) {
-        continue;
+    console.log(`Current game state for room ${roomId}:`, state);
+
+    let sum = 0;
+    for (const cell of clearedCells) {
+      sum  += state?.Board[cell.row]?.[cell.col]?.value ?? 0;
+    }
+    if (sum === 10) {
+      console.log("Cleared cells sum to 10! Awarding point.");
+      const player = state.players[socket.id];
+      if (player === 1) {
+        state.score1 += clearedCells.length; // or +1 per cell, depending on scoring rules
+      } else if (player === 2) {
+        state.score2 += clearedCells.length; // or +1 per cell
       }
-
-      if (cell.value !== 0) {
-        cell.value = 0;
-
-        // add 1 to score per cell
-        if (player === 1) {
-          state.score1 += 1;
-        } else {
-          state.score2 += 1;
-        }
+      for (const { row, col } of clearedCells) {
+        state.Board[row]![col]!.value = 0;
       }
     }
-
     // notify corresponding roomId
-    io.to(roomId).emit("game:state", state);
+    io.to(roomId).emit("room:game_state", state);
   });
 
   

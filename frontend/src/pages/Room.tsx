@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { io, Socket } from "socket.io-client";
+import type { Socket } from "socket.io-client";
+import SocketSingleton from "../Socket";
+
 import { MultiplayerGameBoard } from "../components/MultiplayerGameBoard";
 import { Settings } from "../components/Settings";
 import { Login } from "../components/Login";
@@ -11,9 +13,7 @@ import { Leaderboard } from "../components/Leaderboard";
 
 // TODO: fix this linting issue, it shows up but gives an error.
 import settingsIcon from "../imgs/Settings.png";
-
 import "../App.css";
-const SOCKET_URL = "http://localhost:9090";
 
 export default function Room() {
   type GameMode = "singleplayer" | "multiplayer";
@@ -33,55 +33,18 @@ export default function Room() {
     score1: number;
     score2: number;
     timer: number;
+    players: Record<string, 1 | 2>;
   };
 
   const { matchId } = useParams<{ matchId: string }>();
 
   const socketRef = useRef<Socket | null>(null);
+
   const [connected, setConnected] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [count, setCount] = useState(0);
   const [timer, setTimer] = useState<number>(0);
-
-  useEffect(() => {
-    if (!matchId) return;
-
-    const s = io(SOCKET_URL);
-    socketRef.current = s;
-
-    s.on("connect", () => {
-      setConnected(true);
-      s.emit("room:join", { roomId: matchId });
-    });
-
-    s.on("room:game_state", (gameState: GameStateEmit) => {
-      console.log("Received game state for room:", matchId);
-      setCells(gameState.Board);
-      setTimer(gameState.timer);
-    });
-
-    // receive chat messages
-    s.on("room:message", (msg: string) => {
-      setMessages((prev) => [...prev, msg]);
-    });
-
-    // receive counter updates
-    s.on("room:count", (newCount: number) => {
-      setCount(newCount);
-    });
-
-    return () => {
-      s.disconnect();
-      socketRef.current = null;
-    };
-  }, [matchId]);
-
-  const increment = () => {
-    if (!socketRef.current) return;
-    console.log("Incrementing count for room:", matchId);
-    socketRef.current.emit("room:increment", { roomId: matchId });
-  };
 
   const [cells, setCells] = useState<Board | null>(() => null);
   const [selectedCellIds, setSelectedCellIds] = useState<Set<string>>(
@@ -98,6 +61,59 @@ export default function Room() {
 
   const boardContainerRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (!matchId) return;
+
+    const s = SocketSingleton.getSocket();
+    socketRef.current = s;
+
+    const unsubscribe = SocketSingleton.subscribe({
+      connect: () => {
+        s.emit("room:join", { roomId: matchId });
+        setConnected(true);
+      },
+      disconnect: () => setConnected(false),
+
+      "room:game_state": (gameState: GameStateEmit) => {
+        console.log("Received game state update:", gameState);
+        if (gameState.roomId !== matchId) return;
+        setCells(gameState.Board);
+        setTimer(gameState.timer);
+        // TODO: we need to set both players score and determine winner at end of game.
+        const pn = SocketSingleton.getPlayerNumber();
+        if (pn === 1) setScore(gameState.score1);
+        else if (pn === 2) setScore(gameState.score2);
+      },
+
+      "room:message": (msg) => setMessages((prev) => [...prev, msg]),
+      "room:count": (newCount) => setCount(newCount),
+    });
+
+    SocketSingleton.ensureConnected();
+
+    // if already connected (hot reload), join immediately
+    if (s.connected) {
+      s.emit("room:join", { roomId: matchId });
+      setConnected(true);
+    }
+
+    return () => {
+      // leave just this room, keep socket alive for other pages
+      try {
+        s.emit("room:leave", { roomId: matchId });
+      } catch {}
+      unsubscribe();
+      socketRef.current = null;
+    };
+  }, [matchId]);
+
+  const increment = () => {
+    const s = socketRef.current;
+    if (!s || !matchId) return;
+    console.log("Incrementing count for room:", matchId);
+    s.emit("room:increment", { roomId: matchId });
+  };
+
   const handleSelectionChange = (newSelection: Set<string>) => {
     setSelectedCellIds(newSelection);
     console.log("Selected cells: ", newSelection);
@@ -106,13 +122,11 @@ export default function Room() {
   // submit a selection intent.
   const submitSelection = (cellIds: string[]) => {
     const s = socketRef.current;
-    if (!s || !matchId) {
-      return;
-    }
+    if (!s || !matchId) return;
 
     const clearedCells = cellIds.map((id) => {
       const [, row, col] = id.split("-");
-      return {row: Number(row), col: Number(col)};
+      return { row: Number(row), col: Number(col) };
     });
 
     s.emit("game:update", {
@@ -121,7 +135,7 @@ export default function Room() {
     });
 
     setSelectedCellIds(new Set());
-  }
+  };
 
   const handleTimeUp = () => {
     setGameResult("lose");
@@ -132,9 +146,11 @@ export default function Room() {
     setShowGameOver(false);
     setGameResult(null);
     setScore(0);
-    // setCells(createSampleBoard(13, 17));
     setSelectedCellIds(new Set());
     setGameKey((prev) => prev + 1);
+
+    // optional: ask server to reset
+    // socketRef.current?.emit("game:replay", { roomId: matchId });
   };
 
   useEffect(() => {
@@ -178,11 +194,11 @@ export default function Room() {
 
           {boardWidth !== null && !showGameOver && (
             <Timer
-              key={gameKey}
               boardWidth={boardWidth}
-              onTimeUp={handleTimeUp}
-              isPaused={showSettings || showLogin}
               time={timer}
+              setTime={setTimer}
+              isPaused={showSettings || showLogin}
+              onTimeUp={handleTimeUp}
             />
           )}
         </div>
