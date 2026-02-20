@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import '../App.css'
 
 // I recommend an enumeration
 
@@ -112,81 +113,83 @@ export default function Matchmake() {
 
     // temp placeholders and styling. Consider replacing
     return (
-        <div style={{ padding: 24, fontFamily: "system-ui, sans-serif" }}>
-            <h2>Matchmaking Test</h2>
+        <div className='app'>
+            <div style={{ padding: 24, fontFamily: "system-ui, sans-serif" }}>
+                <h2>Matchmaking Test</h2>
 
-            <div style={{ marginBottom: 12, fontSize: 14, opacity: 0.8 }}>
-                Server: {SOCKET_URL}
-                <br />
-                Your socket: {userSocketId || "(not connected)"}
-            </div>
+                <div style={{ marginBottom: 12, fontSize: 14, opacity: 0.8 }}>
+                    Server: {SOCKET_URL}
+                    <br />
+                    Your socket: {userSocketId || "(not connected)"}
+                </div>
 
-            {status === "idle" && (
-                <button onClick={startMatchmaking} style={btnStyle}>
-                Start Matchmaking
-                </button>
-            )}
+                {status === "idle" && (
+                    <button onClick={startMatchmaking} style={btnStyle}>
+                    Start Matchmaking
+                    </button>
+                )}
 
-            {status === "searching" && (
-                <div style={boxStyle}>
-                    <div style={{ marginBottom: 12 }}>
-                        <strong>Searching for an opponent…</strong>
-                        <div style={{ fontSize: 13, opacity: 0.8 }}>
-                        Open this page in a second browser/tab to match.
+                {status === "searching" && (
+                    <div style={boxStyle}>
+                        <div style={{ marginBottom: 12 }}>
+                            <strong>Searching for an opponent…</strong>
+                            <div style={{ fontSize: 13, opacity: 0.8 }}>
+                            Open this page in a second browser/tab to match.
+                            </div>
                         </div>
+
+                        <button onClick={cancelMatchmaking} style={btnStyle}>
+                            Cancel
+                        </button>
+                    </div>
+                )}
+
+                {status === "matched" && (
+                    <div style={boxStyle}>
+                    <div style={{ marginBottom: 8 }}>
+                        <strong>Match found</strong>
+                    </div>
+                    <div style={{ fontSize: 14 }}>
+                        Match ID: <code>{matchId}</code>
+                        <br />
+                        Opponent: <code>{opponentId}</code>
                     </div>
 
-                    <button onClick={cancelMatchmaking} style={btnStyle}>
-                        Cancel
+                    <div style={{ marginTop: 12, fontSize: 13, opacity: 0.85 }}>
+                        Next step: navigate to your game page and join room <code>{matchId}</code>.
+                    </div>
+
+                    <button
+                        onClick={() => {
+                        // For now, just reset. Later you can navigate to /game/:matchId
+                        setStatus("idle");
+                        setMatchId("");
+                        setOpponentId("");
+                        }}
+                        style={{ ...btnStyle, marginTop: 12 }}
+                    >
+                        Back
                     </button>
-                </div>
-            )}
+                    </div>
+                )}
 
-            {status === "matched" && (
-                <div style={boxStyle}>
-                <div style={{ marginBottom: 8 }}>
-                    <strong>Match found</strong>
-                </div>
-                <div style={{ fontSize: 14 }}>
-                    Match ID: <code>{matchId}</code>
-                    <br />
-                    Opponent: <code>{opponentId}</code>
-                </div>
+                {status === "error" && (
+                    <div style={boxStyle}>
+                    <strong style={{ color: "crimson" }}>Error</strong>
+                    <div style={{ marginTop: 8 }}>{errorMsg}</div>
 
-                <div style={{ marginTop: 12, fontSize: 13, opacity: 0.85 }}>
-                    Next step: navigate to your game page and join room <code>{matchId}</code>.
+                    <button
+                        onClick={() => {
+                        setStatus("idle");
+                        setErrorMsg("");
+                        }}
+                        style={{ ...btnStyle, marginTop: 12 }}
+                    >
+                        Back
+                    </button>
+                    </div>
+                )}
                 </div>
-
-                <button
-                    onClick={() => {
-                    // For now, just reset. Later you can navigate to /game/:matchId
-                    setStatus("idle");
-                    setMatchId("");
-                    setOpponentId("");
-                    }}
-                    style={{ ...btnStyle, marginTop: 12 }}
-                >
-                    Back
-                </button>
-                </div>
-            )}
-
-            {status === "error" && (
-                <div style={boxStyle}>
-                <strong style={{ color: "crimson" }}>Error</strong>
-                <div style={{ marginTop: 8 }}>{errorMsg}</div>
-
-                <button
-                    onClick={() => {
-                    setStatus("idle");
-                    setErrorMsg("");
-                    }}
-                    style={{ ...btnStyle, marginTop: 12 }}
-                >
-                    Back
-                </button>
-                </div>
-            )}
             </div>
     );
 }

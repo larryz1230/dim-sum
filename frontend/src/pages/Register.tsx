@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { handleSignUp } from '../services/api';
+import '../App.css'
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');

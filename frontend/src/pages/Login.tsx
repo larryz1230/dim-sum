@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { handleLogin } from '../services/api'
+import '../App.css'
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -25,44 +26,46 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="auth-wrapper">
-      <div className="auth-card">
-        <h2>Dumpling Destroyer</h2>
-        <p className="auth-subtitle">Login to start clearing the board</p>
-        
-        {error && <div className="error-banner">{error}</div>}
+    <div className='app'>
+      <div className="auth-wrapper">
+        <div className="auth-card">
+          <h2>Dumpling Destroyer</h2>
+          <p className="auth-subtitle">Login to start clearing the board</p>
+          
+          {error && <div className="error-banner">{error}</div>}
 
-        <form onSubmit={onLoginSubmit}>
-          <div className="input-group">
-            <label>Email Address</label>
-            <input
-              type="email"
-              placeholder="user@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
+          <form onSubmit={onLoginSubmit}>
+            <div className="input-group">
+              <label>Email Address</label>
+              <input
+                type="email"
+                placeholder="user@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-          <div className="input-group">
-            <label>Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+            <div className="input-group">
+              <label>Password</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-          <button className="primary-btn" type="submit" disabled={loading}>
-            {loading ? 'Verifying...' : 'Login'}
-          </button>
-        </form>
+            <button className="primary-btn" type="submit" disabled={loading}>
+              {loading ? 'Verifying...' : 'Login'}
+            </button>
+          </form>
 
-        <p className="auth-footer">
-          New player? <Link to="/register">Create an account</Link>
-        </p>
+          <p className="auth-footer">
+            New player? <Link to="/register">Create an account</Link>
+          </p>
+        </div>
       </div>
     </div>
   )

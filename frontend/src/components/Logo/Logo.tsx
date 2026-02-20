@@ -23,7 +23,7 @@ export const Logo: React.FC = () => {
     return (
         <div className="animate-bun">
             {images.map((src, i) => (
-                <img key={i} src={src} alt='' className={i === index ? "img-show" : "img-hide"} />
+                <img key={i} src={src} alt='A dumpling wobbling left and right.' className={i === index ? "img-show" : "img-hide"} />
             ))}
         </div>
     );
