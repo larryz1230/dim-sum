@@ -14,6 +14,10 @@
   margin-bottom: 20px;
 }
 
+.app__header p {
+  color: #a95920;
+}
+
 .app__controls {
   display: flex;
   gap: 10px;
@@ -88,3 +92,15 @@
   display: block;
 }
 
+.app__logo-wrapper {
+  background-color: #8B4513;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border: 5px solid #8B4513;
+  border-radius: 10px;
+  margin: 0 auto;
+}

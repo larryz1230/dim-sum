@@ -7,21 +7,25 @@ import Matchmake from "./pages/Matchmake";
 import { AuthProvider } from "./hooks/useAuth";
 import DefaultRoute from "./components/DefaultRoute";
 import Game from "./pages/Game";
+import Home from "./pages/Home";
+import Layout from "./components/Header/Layout";
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
         <Routes>
+          <Route path="/" element={<Home />} />
           <Route element={<DefaultRoute mode="public" />}>
-            <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Route>
           <Route element={<DefaultRoute mode="protected" />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/game" element={<Game />} />
-            <Route path="/matchmake" element={<Matchmake />} />
+            <Route element={<Layout />}>
+              <Route path="/game" element={<Game />} />
+              <Route path="/matchmake" element={<Matchmake />} />
+            </Route>
           </Route>
         </Routes>
       </Router>
