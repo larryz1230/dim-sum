@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
-import { GameBoard } from "../components/GameBoard";
+import { MultiplayerGameBoard } from "../components/MultiplayerGameBoard";
 import { Settings } from "../components/Settings";
 import { Login } from "../components/Login";
 import { Timer } from "../components/Timer";
@@ -42,6 +42,7 @@ export default function Room() {
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [count, setCount] = useState(0);
+  const [timer, setTimer] = useState<number>(0);
 
   useEffect(() => {
     if (!matchId) return;
@@ -57,6 +58,7 @@ export default function Room() {
     s.on("room:game_state", (gameState: GameStateEmit) => {
       console.log("Received game state for room:", matchId);
       setCells(gameState.Board);
+      setTimer(gameState.timer);
     });
 
     // receive chat messages
@@ -101,22 +103,25 @@ export default function Room() {
     console.log("Selected cells: ", newSelection);
   };
 
-  const handleCellsUpdate = (updatedCells: Board) => {
-    if (!cells) return;
-    const previousCells = cells;
-    let clearedCount = 0;
-
-    for (let row = 0; row < previousCells.length; row++) {
-      for (let col = 0; col < previousCells[row].length; col++) {
-        const prevCell = previousCells[row][col];
-        const newCell = updatedCells[row][col];
-        if (prevCell.value !== 0 && newCell.value === 0) clearedCount++;
-      }
+  // submit a selection intent.
+  const submitSelection = (cellIds: string[]) => {
+    const s = socketRef.current;
+    if (!s || !matchId) {
+      return;
     }
 
-    if (clearedCount > 0) setScore((prev) => prev + clearedCount);
-    setCells(updatedCells);
-  };
+    const clearedCells = cellIds.map((id) => {
+      const [, row, col] = id.split("-");
+      return {row: Number(row), col: Number(col)};
+    });
+
+    s.emit("game:update", {
+      roomId: matchId,
+      clearedCells,
+    });
+
+    setSelectedCellIds(new Set());
+  }
 
   const handleTimeUp = () => {
     setGameResult("lose");
@@ -160,13 +165,11 @@ export default function Room() {
     <div className="app">
       <div className="app__main-content">
         <div className="app__game-container" ref={boardContainerRef}>
-          <GameBoard
+          <MultiplayerGameBoard
             cells={cells}
             selectedCellIds={selectedCellIds}
             onSelectionChange={handleSelectionChange}
-            onCellsUpdate={handleCellsUpdate}
-            // If onCellClick is required, keep this:
-            onCellClick={() => {}}
+            onSelectionEnd={submitSelection}
             socketRef={socketRef as any}
             matchId={matchId as any}
             disabled={showSettings || showLogin}
@@ -179,6 +182,7 @@ export default function Room() {
               boardWidth={boardWidth}
               onTimeUp={handleTimeUp}
               isPaused={showSettings || showLogin}
+              time={timer}
             />
           )}
         </div>

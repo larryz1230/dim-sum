@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 type MatchFoundPayload = {
   matchId: string;
-  opponentSocketId: string;
+  playerNumber: 1 | 2;
 };
 
 type Status = "idle" | "searching" | "matched" | "error";
@@ -22,6 +22,7 @@ export default function Matchmake() {
   const [matchId, setMatchId] = useState<string>("");
   const [opponentId, setOpponentId] = useState<string>("");
   const [userSocketId, setUserSocketId] = useState<string>("");
+  const [playerNumber, setPlayerNumber] = useState<1 | 2 | -1>(-1);
 
   const navigate = useNavigate();
 
@@ -63,7 +64,7 @@ export default function Matchmake() {
     s.on("matchmaking:match_found", (payload: MatchFoundPayload) => {
       setStatus("matched");
       setMatchId(payload.matchId);
-      setOpponentId(payload.opponentSocketId);
+      setPlayerNumber(payload.playerNumber);
     });
 
     s.on("matchmaking:canceled", () => {
@@ -159,12 +160,13 @@ export default function Matchmake() {
           <div style={{ marginTop: 12, fontSize: 13, opacity: 0.85 }}>
             Next step: navigate to your game page and join room{" "}
             <code>{matchId}</code>.
+            You are <strong>Player {playerNumber}</strong>
           </div>
 
           <button
             onClick={() => {
               if (!matchId) return;
-              navigate(`/room/${matchId}`);
+              navigate(`/room/${matchId}?player=${playerNumber}`);
             }}
             style={{ ...btnStyle, marginTop: 12 }}
           >

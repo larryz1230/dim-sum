@@ -10,25 +10,41 @@ type Cell = {
   row: number;
   col: number;
 };
+
+
+ // currently assuming that a game only updates with cleared cells
+ // client sends intent -- server validates
 type GameUpdatePayload = {
   roomId: string;
-  cells: any;
-  player: number;
+  clearedCells: {
+    row: number,
+    col: number
+  }[];
 };
 
 type Board = Cell[][];
 
-type GameStateEmit = { roomId: string; Board: Board, score1: number, score2: number, timer: number };
+type GameStateEmit = { 
+  roomId: string; 
+  Board: Board, 
+  score1: number, 
+  score2: number, 
+  timer: number,
+  players: Record<string, 1 | 2>, 
+};
 
 const roomCounts = new Map<string, number>();
-let gamestate: GameStateEmit;
+
+// currently a map of ALL matchIds and the state of their games
+// very confusing but matchId and roomId are synonymous?
+export const games = new Map<string, GameStateEmit>(); // change to DB?
 
 type GameMode = "singleplayer" | "multiplayer";
 type GameResult = "win" | "lose" | null;
 
 
 // Create a sample game board
-const createSampleBoard = (rows = 12, cols = 10): Board => {
+export const createSampleBoard = (rows = 12, cols = 10): Board => {
   const cells: Board = [];
 
   for (let row = 0; row < rows; row++) {
@@ -49,35 +65,56 @@ const createSampleBoard = (rows = 12, cols = 10): Board => {
 
 export function registerGameHandlers(io: Server, socket: Socket) {
   console.log("Registering game handlers for socket:", socket.id);
+
+  // modified to read only
   socket.on("room:join", ({ roomId }: JoinPayload) => {
     if (!roomId) return;
 
-    socket.join(roomId);
-
-    // init count if needed
-    if (!roomCounts.has(roomId)) roomCounts.set(roomId, 0);
-
-    socket.emit("room:joined");
-    socket.emit("room:count", roomCounts.get(roomId)!);
-
-    if (io.sockets.adapter.rooms.get(roomId)?.size === 2) {
-      console.log(`Room ${roomId} is full. Starting game...`);
-      const board = createSampleBoard();
-      gamestate = {
-        roomId,
-        Board: board,
-        score1: 0,  
-        score2: 0,
-        timer: 120, // 2 minutes
-      }
-      io.to(roomId).emit("room:game_state", gamestate);
+    const state = games.get(roomId);
+    if (!state) {
+      console.warn(`Room ${roomId} has no game state`);
+      return;
     }
+
+    socket.join(roomId);
+    socket.emit("room:game_state", state);
   });
 
-  socket.on("game:update", ({roomId, cells, player}: GameUpdatePayload) => {
+  socket.on("game:update", ({roomId, clearedCells }: GameUpdatePayload) => {
     if (!roomId) return;
-    console.log(`Updating game state for room ${roomId} and player ${player} with cells: ${JSON.stringify(cells)}`);
 
+    const state = games.get(roomId);
+    if (!state) {
+      return;
+    }
+
+    const player = state.players[socket.id];
+    if (!player) {
+      console.warn("Unauthorized game update attempt");
+      return;
+    }
+
+    // parse cells
+    for (const {row, col} of clearedCells) {
+      const cell = state.Board[row]?.[col];
+      if (!cell) {
+        continue;
+      }
+
+      if (cell.value !== 0) {
+        cell.value = 0;
+
+        // add 1 to score per cell
+        if (player === 1) {
+          state.score1 += 1;
+        } else {
+          state.score2 += 1;
+        }
+      }
+    }
+
+    // notify corresponding roomId
+    io.to(roomId).emit("game:state", state);
   });
 
   

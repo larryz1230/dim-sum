@@ -1,17 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Timer.css';
 
-export const Timer = ({ boardWidth, onTimeUp, isPaused = false }) => {
+export const Timer = ({ boardWidth, onTimeUp, isPaused = false, time = -1}) => {
   const [timeLeft, setTimeLeft] = useState(60);
   const timerRef = useRef(null);
 
   useEffect(() => {
-    if (!isPaused && timeLeft > 0) {
-      timerRef.current = setTimeout(() => {
-        setTimeLeft(timeLeft - 1);
-      }, 1000);
-    } else if (!isPaused && timeLeft === 0 && onTimeUp) {
-      onTimeUp();
+    if (time === -1) {
+      setTimeLeft(time);
+    } else {
+      if (!isPaused && timeLeft > 0) {
+        timerRef.current = setTimeout(() => {
+          setTimeLeft(timeLeft - 1);
+        }, 1000);
+      } else if (!isPaused && timeLeft === 0 && onTimeUp) {
+        onTimeUp();
+      }
     }
 
     return () => {
