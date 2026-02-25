@@ -7,7 +7,7 @@ import { GameOver } from "../components/GameOver";
 import { Score } from "../components/Score";
 import { Leaderboard } from "../components/Leaderboard";
 
-// TODO: fix this linting issue, it shows up but gives an error.
+// WHY ISN:
 import settingsIcon from "../imgs/Settings.png";
 
 import "../App.css";
