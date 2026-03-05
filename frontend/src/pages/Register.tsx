@@ -27,44 +27,48 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="auth-wrapper">
-      <div className="auth-card">
-        <h2>Create a New Account</h2>
-        <p className="auth-subtitle">Join Dumpling Destroyer and start learning!</p>
-        
-        {error && <div className="error-banner">{error}</div>}
-
-        <form onSubmit={onRegisterSubmit}>
-          <div className="input-group">
-            <label>Email Address</label>
-            <input
-              type="email"
-              placeholder="user@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+    <div className="app__login">
+      <div className="auth-wrapper">
+        <div className="auth-card">
+          <div className="auth-title">
+            <h2>Create a New Account</h2>
           </div>
+          <p className="auth-subtitle">Join Dumpling Destroyer and start learning!</p>
+          
+          {error && <div className="error-banner">{error}</div>}
 
-          <div className="input-group">
-            <label>Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          <form onSubmit={onRegisterSubmit}>
+            <div className="input-group">
+              <label>Email Address</label>
+              <input
+                type="email"
+                placeholder="user@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-          <button className="primary-btn" type="submit" disabled={loading}>
-            {loading ? 'Creating Account...' : 'Register'}
-          </button>
-        </form>
+            <div className="input-group">
+              <label>Password</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-        <p className="auth-footer">
-          Already have an account? <Link to="/login">Log in</Link>
-        </p>
+            <button className="primary-btn" type="submit" disabled={loading}>
+              {loading ? 'Creating Account...' : 'Register'}
+            </button>
+          </form>
+
+          <p className="auth-footer">
+            Already have an account? <Link to="/login">Log in</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

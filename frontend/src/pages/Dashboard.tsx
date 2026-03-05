@@ -9,7 +9,12 @@ const Dashboard: React.FC = () => {
         <div className='app'>
             <div className='app__header'>
                 <h1>Dashboard</h1>
-                <p>Welcome to the Dumpling Destroyer dashboard!</p>
+            </div>
+            <div className='app__dashboard'>
+                <button>Hi</button>
+                <button>Bye</button>
+            </div>
+            <div className='app__settings-button'>
                 <button onClick={logout}>Sign Out</button>
             </div>
         </div>

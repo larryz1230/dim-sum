@@ -14,20 +14,20 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route element={<DefaultRoute mode="public" />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Route>
-          <Route element={<DefaultRoute mode="protected" />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route element={<Layout />}>
-              <Route path="/game" element={<Game />} />
-              <Route path="/matchmake" element={<Matchmake />} />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route element={<DefaultRoute mode="public" />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
             </Route>
-          </Route>
-        </Routes>
+            <Route element={<DefaultRoute mode="protected" />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route element={<Layout />}>
+                <Route path="/game" element={<Game />} />
+                <Route path="/matchmake" element={<Matchmake />} />
+              </Route>
+            </Route>
+          </Routes>
       </Router>
     </AuthProvider>
   );

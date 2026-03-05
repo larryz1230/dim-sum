@@ -1,7 +1,7 @@
 .app {
   min-height: 100vh;
   background-color: #E7BC9B;
-  padding: 20px;
+  padding: 80px 20px 20px 20px;
 }
 
 .app__header {
@@ -15,7 +15,7 @@
 }
 
 .app__header p {
-  color: #a95920;
+  color: #A95920;
 }
 
 .app__controls {
@@ -93,7 +93,7 @@
 }
 
 .app__logo-wrapper {
-  background-color: #8B4513;
+  background-color: #8C3322;
   width: 200px;
   height: 200px;
   display: flex;
@@ -103,4 +103,92 @@
   border: 5px solid #8B4513;
   border-radius: 10px;
   margin: 0 auto;
+}
+
+.app__dashboard {
+  background-color: #d38c59;
+  text-align: center;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 20px;
+}
+
+.app__dashboard button {
+  background-color: #A95920;
+  padding-left: 20%;
+  padding-right: 20%;
+  padding-top: 15%;
+  padding-bottom: 15%;
+  border: 5px solid #C28152;
+  border-radius: 10px;
+  transition: transform 0.2s ease;
+  opacity: 75%;
+}
+
+.app__dashboard button:hover {
+  transform: translateY(-5px);
+}
+
+.app__login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #E7BC9B, #C28152);
+}
+
+.app__login button {
+  padding: 8px 20px 8px 20px;
+  background-color: #cb584d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.app__login button:hover {
+  background-color: #8B4513;
+}
+
+.app__login button:active {
+  transform: scale(0.98);
+}
+
+.input-group {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  color: #893900; 
+  margin-right: 10px;
+  display: block;
+}
+
+.input-group input {
+  line-height: 20px;
+  border-radius: 5px;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.auth-title {
+  font-size: 24px;
+  color: #893900;
+}
+
+.auth-subtitle {
+  font-size: 18px;
+  color: #A66B1F
+}
+
+.auth-card {
+  border-radius: 10px;
+  background-color: #E7BC9B;
+  padding: 40px;
+  font-family: 'Nunito', sans-serif;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
 }

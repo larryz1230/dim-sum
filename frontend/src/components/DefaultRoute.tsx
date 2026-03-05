@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import "./DefaultRouter.css"
 
 // public if logged in, protected if not logged in
 type RouteMode = "public" | "protected";
@@ -15,8 +16,11 @@ const DefaultRoute: React.FC<DefaultRouteProps> =
   const { user, loading } = useAuth();
 
   if (loading) {
-    // You can add a loading spinner here
-    return <div>Loading...</div>;
+    return (
+      <div className="spinner">
+        <div className="circle"></div>
+      </div>
+    );
   }
 
   if (mode === "protected") {

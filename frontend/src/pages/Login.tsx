@@ -26,10 +26,12 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className='app'>
+    <div className='app__login'>
       <div className="auth-wrapper">
         <div className="auth-card">
-          <h2>Dumpling Destroyer</h2>
+          <div className="auth-title">
+            <h2>Dumpling Destroyer</h2>
+          </div>
           <p className="auth-subtitle">Login to start clearing the board</p>
           
           {error && <div className="error-banner">{error}</div>}
