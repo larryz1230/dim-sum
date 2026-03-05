@@ -54,8 +54,9 @@ export default function Room() {
   const [showLogin, setShowLogin] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
   const [gameResult, setGameResult] = useState<GameResult>(null);
-  const [score, setScore] = useState(0);
-  const [gameMode, setGameMode] = useState<GameMode>("singleplayer");
+  const [score1, setScore1] = useState(0);
+  const [score2, setScore2] = useState(0);
+  const [gameMode, setGameMode] = useState<GameMode>("multiplayer");
   const [boardWidth, setBoardWidth] = useState<number | null>(null);
   const [gameKey, setGameKey] = useState(0);
 
@@ -81,8 +82,13 @@ export default function Room() {
         setTimer(gameState.timer);
         // TODO: we need to set both players score and determine winner at end of game.
         const pn = SocketSingleton.getPlayerNumber();
-        if (pn === 1) setScore(gameState.score1);
-        else if (pn === 2) setScore(gameState.score2);
+        if (pn === 1) {
+          setScore1(gameState.score1);
+          setScore2(gameState.score2);
+        } else if (pn === 2) {
+          setScore1(gameState.score2);
+          setScore2(gameState.score1);
+        }
       },
 
       "room:message": (msg) => setMessages((prev) => [...prev, msg]),
@@ -106,13 +112,6 @@ export default function Room() {
       socketRef.current = null;
     };
   }, [matchId]);
-
-  const increment = () => {
-    const s = socketRef.current;
-    if (!s || !matchId) return;
-    console.log("Incrementing count for room:", matchId);
-    s.emit("room:increment", { roomId: matchId });
-  };
 
   const handleSelectionChange = (newSelection: Set<string>) => {
     setSelectedCellIds(newSelection);
@@ -140,17 +139,6 @@ export default function Room() {
   const handleTimeUp = () => {
     setGameResult("lose");
     setShowGameOver(true);
-  };
-
-  const handleReplay = () => {
-    setShowGameOver(false);
-    setGameResult(null);
-    setScore(0);
-    setSelectedCellIds(new Set());
-    setGameKey((prev) => prev + 1);
-
-    // optional: ask server to reset
-    // socketRef.current?.emit("game:replay", { roomId: matchId });
   };
 
   useEffect(() => {
@@ -204,7 +192,7 @@ export default function Room() {
         </div>
 
         <div className="app__sidebar">
-          <Score score={score} gameMode={gameMode} />
+          <Score score={score1} opponentScore={score2} gameMode={gameMode} />
           <Leaderboard gameMode={gameMode} />
         </div>
       </div>
@@ -232,9 +220,9 @@ export default function Room() {
 
       {showGameOver && (
         <GameOver
-          result={gameResult}
-          score={score}
-          onReplay={handleReplay}
+          // TODO: add player names here too
+          player1={score1}
+          player2={score2}
           onClose={() => setShowGameOver(false)}
         />
       )}

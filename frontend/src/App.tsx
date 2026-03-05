@@ -23,7 +23,9 @@ const App: React.FC = () => {
           <Route element={<ProtectedRoute />}>
             <Route path="/game" element={<Game />} />
           </Route>
-          <Route path="/matchmake" element={<Matchmake />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/matchmake" element={<Matchmake />} />
+          </Route>
           <Route path="/room/:matchId" element={<Room />} />
         </Routes>
       </Router>
