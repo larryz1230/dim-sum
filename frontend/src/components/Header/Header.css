@@ -31,7 +31,6 @@
 
 .nav-right {
     margin-left: auto;
-    margin-right: 50px;
 }
 
 .nav-link {
@@ -62,7 +61,7 @@
     font-size: 2rem;
     color: white;
     position: absolute;
-    left: 50%;
+    left: 48%;
     bottom: 0px;
     cursor: pointer;
     user-select: none;

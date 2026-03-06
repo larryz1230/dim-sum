@@ -22,8 +22,8 @@ const App: React.FC = () => {
               <Route path="/register" element={<Register />} />
             </Route>
             <Route element={<DefaultRoute mode="protected" />}>
-              <Route path="/dashboard" element={<Dashboard />} />
               <Route element={<Layout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/game" element={<Game />} />
                 <Route path="/matchmake" element={<Matchmake />} />
                 <Route path="/room/:matchId" element={<Room />} />
