@@ -1,13 +1,9 @@
 import "./LeaderboardExpanded.css"
 
-interface Props {
-  onBack: () => void
-}
-
-const LeaderboardExpanded: React.FC<Props> = ({ onBack }) => {
+const LeaderboardExpanded: React.FC = () => {
   return (
     <div>
-      <button onClick={onBack}>Back</button>
+      <h1>Content</h1>
     </div>
   );
 }

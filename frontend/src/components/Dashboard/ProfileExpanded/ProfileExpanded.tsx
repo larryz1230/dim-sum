@@ -1,13 +1,23 @@
-import "./ProfileExpanded.css"
+import './ProfileExpanded.css'
+import DefaultAvatar from '../../../imgs/default-avatar.jpeg'
 
-interface Props {
-  onBack: () => void
-}
-
-const ProfileExpanded: React.FC<Props> = ({ onBack }) => {
+const ProfileExpanded: React.FC = () => {
   return (
-    <div>
-      <button onClick={onBack}>Back</button>
+    <div className="profile-content">
+      <div className='profile-container'>
+        <img src={DefaultAvatar}></img>
+      </div>
+      <div className='profile-name'>
+        Hello, Username!
+      </div>
+      <div className='profile-stats'>
+        <div className='profile-stat'>
+          Wins:
+        </div>
+        <div className='profile-stat'>
+          Losses:
+        </div>
+      </div>
     </div>
   );
 }

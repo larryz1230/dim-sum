@@ -108,18 +108,19 @@
 .app__dashboard {
   font-family: 'Nunito', sans-serif;
   text-align: center;
-  gap: 20px;
   border-radius: 20px;
   min-height: 100vh;
   background-color: #8C4F23;
   box-shadow: 0 12px 12px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
 }
 
 .app__dashboard-header {
   text-align: center;
   margin: 0 auto;
+  width: 100%;
   background-color: #8C3322;
-  border: 1px #8C3322 solid;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   color: white;
@@ -160,8 +161,48 @@
   animation: fadeIn 0.35s ease;
 }
 
-.play-expanded {
+.app__dashboard-expanded {
+  background-color: #B56743;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
   animation: fadeInScale 0.4s ease;
+  margin: 40px;
+  flex: 1;
+}
+
+.app__dashboard-back {
+  display: block;
+  margin: auto auto 10px auto;
+  color: #8C3322;
+  font-weight:bolder;
+  font-size: 14px;
+  background-color: #E7BC9B;
+  border: #E7BC9B 5px solid;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.app__dashboard-back:hover {
+  background-color: #EBC8AE;
+  border-color: #EBC8AE;
+  color: #802817;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02) translateY(-5%);
+}
+
+.app__dashboard-back-arrow {
+  color: #E7BC9B;
+  margin-left: 6px;
+  transition: color 0.2s ease;
+}
+
+.app__dashboard-back:hover .app__dashboard-back-arrow {
+  color: #802817;
 }
 
 @keyframes fadeIn {

@@ -1,13 +1,9 @@
 import "./SettingsExpanded.css"
 
-interface Props {
-  onBack: () => void
-}
-
-const SettingsExpanded: React.FC<Props> = ({ onBack }) => {
+const SettingsExpanded: React.FC = () => {
   return (
     <div>
-      <button onClick={onBack}>Back</button>
+      <h1>Content</h1>
     </div>
   );
 }

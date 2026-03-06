@@ -21,7 +21,7 @@ const Header: React.FC = () => {
                     <Link className="nav-link" to="/game">Game</Link>
                 </div>
                 <div className="nav-right">
-                    <Link className="nav-link" to="/game" onClick={logout}>Sign-Out</Link>
+                    <button className="sign-out-btn" onClick={logout}>Sign-Out</button>
                 </div>
             </nav>
             <div className="toggle-arrow" onClick={toggleHeader}>
