@@ -29,7 +29,7 @@ export default function Room() {
   type Board = Cell[][];
   type GameStateEmit = {
     roomId: string;
-    Board: Board;
+    board: Board;
     score1: number;
     score2: number;
     timer: number;
@@ -78,7 +78,7 @@ export default function Room() {
       "room:game_state": (gameState: GameStateEmit) => {
         console.log("Received game state update:", gameState);
         if (gameState.roomId !== matchId) return;
-        setCells(gameState.Board);
+        setCells(gameState.board);
         setTimer(gameState.timer);
         // TODO: we need to set both players score and determine winner at end of game.
         const pn = SocketSingleton.getPlayerNumber();

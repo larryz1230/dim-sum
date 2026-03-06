@@ -71,7 +71,6 @@ export default class SocketSingleton {
         transports: ["websocket"],
       });
 
-      // ✅ store player number globally when match found
       this.socket.on("matchmaking:match_found", (p) => {
         this.playerNumber = p.playerNumber;
       });
