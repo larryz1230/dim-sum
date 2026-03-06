@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
-import SocketSingleton, { type MatchFoundPayload } from "../Socket";
+import SocketSingleton from "../Socket";
+import type { MatchFoundPayload } from "../../../shared/SocketTypes";
+import { SOCKET_EVENTS } from "../../../shared/SocketEvents";
 
 type Status = "idle" | "searching" | "matched" | "error";
 
@@ -32,7 +34,7 @@ export default function Matchmake() {
         setStatus("error");
       },
 
-      "matchmaking:queued": () => {
+      [SOCKET_EVENTS.MATCH_QUEUED] : () => {
         setStatus("searching");
         setErrorMsg("");
         setMatchId("");
@@ -40,7 +42,7 @@ export default function Matchmake() {
         setPlayerNumber(-1);
       },
 
-      "matchmaking:match_found": (
+      [SOCKET_EVENTS.MATCH_FOUND]: (
         payload: MatchFoundPayload & { opponentId?: string },
       ) => {
         setStatus("matched");
@@ -49,9 +51,9 @@ export default function Matchmake() {
         setOpponentId(payload.opponentId ?? "");
       },
 
-      "matchmaking:canceled": () => setStatus("idle"),
+      [SOCKET_EVENTS.MATCH_CANCELED]: () => setStatus("idle"),
 
-      "matchmaking:error": (msg) => {
+      [SOCKET_EVENTS.MATCH_ERROR]: (msg) => {
         setErrorMsg(msg || "Matchmaking error.");
         setStatus("error");
       },
@@ -64,7 +66,7 @@ export default function Matchmake() {
     return () => {
       // auto-cancel if leaving mid-search (optional)
       try {
-        s.emit("matchmaking:cancel");
+        s.emit(SOCKET_EVENTS.MATCH_CANCEL);
       } catch {}
 
       unsubscribe();
@@ -74,11 +76,11 @@ export default function Matchmake() {
 
   const startMatchmaking = () => {
     SocketSingleton.ensureConnected();
-    SocketSingleton.getSocket().emit("matchmaking:start");
+    SocketSingleton.getSocket().emit(SOCKET_EVENTS.MATCH_START);
   };
 
   const cancelMatchmaking = () => {
-    SocketSingleton.getSocket().emit("matchmaking:cancel");
+    SocketSingleton.getSocket().emit(SOCKET_EVENTS.MATCH_CANCEL);
   };
 
   return (

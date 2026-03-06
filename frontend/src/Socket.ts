@@ -1,33 +1,30 @@
 import { io, type Socket } from "socket.io-client";
+import { SOCKET_EVENTS } from "../../shared/SocketEvents";
+import { MatchFoundPayload } from "../../shared/SocketTypes";
 
 const SOCKET_URL = "http://localhost:9090";
 
-export type MatchFoundPayload = {
-  matchId: string;
-  playerNumber: 1 | 2;
-};
-
 // (optional) type your server->client events here
 type ServerToClientEvents = {
-  "matchmaking:queued": () => void;
-  "matchmaking:match_found": (payload: MatchFoundPayload) => void;
-  "matchmaking:canceled": () => void;
-  "matchmaking:error": (msg: string) => void;
+  [SOCKET_EVENTS.MATCH_QUEUED]: () => void;
+  [SOCKET_EVENTS.MATCH_FOUND]: (payload: MatchFoundPayload) => void;
+  [SOCKET_EVENTS.MATCH_CANCELED]: () => void;
+  [SOCKET_EVENTS.MATCH_ERROR]: (msg: string) => void;
 
-  "room:game_state": (state: any) => void;
-  "room:message": (msg: string) => void;
-  "room:count": (count: number) => void;
+  [SOCKET_EVENTS.ROOM_GAME_STATE]: (state: any) => void;
+  [SOCKET_EVENTS.ROOM_MESSAGE]: (msg: string) => void;
+  [SOCKET_EVENTS.ROOM_COUNT]: (count: number) => void;
 };
 
 type ClientToServerEvents = {
-  "matchmaking:start": () => void;
-  "matchmaking:cancel": () => void;
+  [SOCKET_EVENTS.MATCH_START]: () => void;
+  [SOCKET_EVENTS.MATCH_CANCEL]: () => void;
 
-  "room:join": (p: { roomId: string }) => void;
-  "room:leave": (p: { roomId: string }) => void;
-  "room:increment": (p: { roomId: string }) => void;
+  [SOCKET_EVENTS.ROOM_JOIN]: (p: { roomId: string }) => void;
+  [SOCKET_EVENTS.ROOM_LEAVE]: (p: { roomId: string }) => void;
+  "room:increment": (p: { roomId: string }) => void; // ???
 
-  "game:update": (p: { roomId: string; clearedCells: { row: number; col: number }[] }) => void;
+  [SOCKET_EVENTS.GAME_UPDATE]: (p: { roomId: string; clearedCells: { row: number; col: number }[] }) => void;
 };
 
 type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -37,14 +34,14 @@ export type SocketHandlers = Partial<{
   disconnect: () => void;
   connect_error: (msg: string) => void;
 
-  "matchmaking:queued": () => void;
-  "matchmaking:match_found": (p: MatchFoundPayload) => void;
-  "matchmaking:canceled": () => void;
-  "matchmaking:error": (msg: string) => void;
+  [SOCKET_EVENTS.MATCH_QUEUED]: () => void;
+  [SOCKET_EVENTS.MATCH_FOUND]: (p: MatchFoundPayload) => void;
+  [SOCKET_EVENTS.MATCH_CANCELED]: () => void;
+  [SOCKET_EVENTS.MATCH_ERROR]: (msg: string) => void;
 
-  "room:game_state": (state: any) => void;
-  "room:message": (msg: string) => void;
-  "room:count": (count: number) => void;
+  [SOCKET_EVENTS.ROOM_GAME_STATE]: (state: any) => void;
+  [SOCKET_EVENTS.ROOM_MESSAGE]: (msg: string) => void;
+  [SOCKET_EVENTS.ROOM_COUNT]: (count: number) => void;
 }>;
 
 export default class SocketSingleton {
@@ -71,12 +68,12 @@ export default class SocketSingleton {
         transports: ["websocket"],
       });
 
-      this.socket.on("matchmaking:match_found", (p) => {
+      this.socket.on(SOCKET_EVENTS.MATCH_FOUND, (p) => {
         this.playerNumber = p.playerNumber;
       });
 
       // optional: clear on disconnect
-      this.socket.on("disconnect", () => {
+      this.socket.on(SOCKET_EVENTS.DISCONNECT, () => {
         this.playerNumber = null;
       });
     }
@@ -98,21 +95,20 @@ export default class SocketSingleton {
       ons.push(() => s.off(event as any, fn as any));
     };
 
-    on("connect", handlers.connect ? (() => handlers.connect!(s.id ?? "")) : undefined);
-    on("disconnect", handlers.disconnect);
-    on("connect_error", handlers.connect_error ? ((errMsg: any) =>
+    on(SOCKET_EVENTS.CONNECT, handlers.connect ? (() => handlers.connect!(s.id ?? "")) : undefined);
+    on(SOCKET_EVENTS.DISCONNECT, handlers.disconnect);
+    on(SOCKET_EVENTS.CONNECT_ERROR, handlers.connect_error ? ((errMsg: any) =>
       handlers.connect_error!(errMsg?.message ?? "Connection failed")
     ) : undefined);
 
-    // if page wants to handle match_found too, still call it
-    on("matchmaking:queued", handlers["matchmaking:queued"]);
-    on("matchmaking:match_found", handlers["matchmaking:match_found"]);
-    on("matchmaking:canceled", handlers["matchmaking:canceled"]);
-    on("matchmaking:error", handlers["matchmaking:error"]);
+    on(SOCKET_EVENTS.MATCH_QUEUED, handlers[SOCKET_EVENTS.MATCH_QUEUED]);
+    on(SOCKET_EVENTS.MATCH_FOUND, handlers[SOCKET_EVENTS.MATCH_FOUND]);
+    on(SOCKET_EVENTS.MATCH_CANCELED, handlers[SOCKET_EVENTS.MATCH_CANCELED]);
+    on(SOCKET_EVENTS.MATCH_ERROR, handlers[SOCKET_EVENTS.MATCH_ERROR]);
 
-    on("room:game_state", handlers["room:game_state"]);
-    on("room:message", handlers["room:message"]);
-    on("room:count", handlers["room:count"]);
+    on(SOCKET_EVENTS.ROOM_GAME_STATE, handlers[SOCKET_EVENTS.ROOM_GAME_STATE]);
+    on(SOCKET_EVENTS.ROOM_MESSAGE, handlers[SOCKET_EVENTS.ROOM_MESSAGE]);
+    on(SOCKET_EVENTS.ROOM_COUNT, handlers[SOCKET_EVENTS.ROOM_COUNT]);
 
     return () => ons.forEach((off) => off());
   }
