@@ -9,6 +9,7 @@ import DefaultRoute from "./components/DefaultRoute";
 import Game from "./pages/Game";
 import Home from "./pages/Home";
 import Layout from "./components/Header/Layout";
+import Room from "./pages/Room";
 
 const App: React.FC = () => {
   return (
@@ -25,6 +26,7 @@ const App: React.FC = () => {
               <Route element={<Layout />}>
                 <Route path="/game" element={<Game />} />
                 <Route path="/matchmake" element={<Matchmake />} />
+                <Route path="/room/:matchId" element={<Room />} />
               </Route>
             </Route>
           </Routes>

@@ -1,197 +1,178 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import React, { useEffect, useRef, useState } from "react";
+import type { Socket } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
+import SocketSingleton, { type MatchFoundPayload } from "../Socket";
 import '../App.css'
-
-// I recommend an enumeration
-
-type MatchFoundPayload = {
-    matchId: string;
-    opponentSocketId: string;
-}
 
 type Status = "idle" | "searching" | "matched" | "error";
 
-// const SOCKET_URL = (import.meta as any).env?.VITE_SOCKET_URL ?? "http://localhost:9090";
+// shown in UI only (the singleton can use its own SOCKET_URL internally)
 const SOCKET_URL = "http://localhost:9090";
 
 export default function Matchmake() {
-    const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<Socket | null>(null);
 
-    const [status, setStatus] = useState<Status>("idle");
-    const [errorMsg, setErrorMsg] = useState<string>("");
-    const [matchId, setMatchId] = useState<string>("");
-    const [opponentId, setOpponentId] = useState<string>("");
-    const [userSocketId, setUserSocketId] = useState<string>("");
+  const [status, setStatus] = useState<Status>("idle");
+  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [matchId, setMatchId] = useState<string>("");
+  const [opponentId, setOpponentId] = useState<string>(""); // optional (if server sends it)
+  const [userSocketId, setUserSocketId] = useState<string>("");
+  const [playerNumber, setPlayerNumber] = useState<1 | 2 | -1>(-1);
 
-    // socket init when matchmake starts (not persistent when page loads)
-    // there should only be one, like a singleton
-    const getSocket = () => {
-        if (socketRef.current) {
-            return socketRef.current;
-        }
+  const navigate = useNavigate();
 
-        const s = io(SOCKET_URL, {
-            autoConnect: false,
-        });
+  useEffect(() => {
+    const s = SocketSingleton.getSocket(); // or getInstance() depending on your singleton
+    socketRef.current = s;
 
-        s.on("connect", () => {
-            console.log("Connected to backend: ", s.id);
-            setUserSocketId(s.id ?? "");
-        })
+    // Subscribe using your singleton helper (clean + safe)
+    const unsubscribe = SocketSingleton.subscribe({
+      connect: (id) => setUserSocketId(id),
+      connect_error: (msg) => {
+        setErrorMsg(msg || "Failed to reach server.");
+        setStatus("error");
+      },
 
-        s.on("disconnect", () => {
-            setUserSocketId("");
-            setStatus((prev) => (prev === "searching" ? "idle" : prev));
-        });
+      "matchmaking:queued": () => {
+        setStatus("searching");
+        setErrorMsg("");
+        setMatchId("");
+        setOpponentId("");
+        setPlayerNumber(-1);
+      },
 
-        s.on("connect_error", (err : any) => {
-            console.log("CONNECT ERROR:", err.message);
-            setErrorMsg(err?.message ?? "Failed to reach server.");
-            setStatus("error");
-        });
+      "matchmaking:match_found": (
+        payload: MatchFoundPayload & { opponentId?: string },
+      ) => {
+        setStatus("matched");
+        setMatchId(payload.matchId);
+        setPlayerNumber(payload.playerNumber);
+        setOpponentId(payload.opponentId ?? "");
+      },
 
-        s.on("matchmaking:queued", () => {
-            setStatus("searching");
-            console.log("searching atm");
-            setErrorMsg("");
-            setMatchId("");
-            setOpponentId("");
-        });
+      "matchmaking:canceled": () => setStatus("idle"),
 
-        s.on("matchmaking:match_found", (payload: MatchFoundPayload) => {
-            setStatus("matched");
-            setMatchId(payload.matchId);
-            setOpponentId(payload.opponentSocketId);
-        });
+      "matchmaking:error": (msg) => {
+        setErrorMsg(msg || "Matchmaking error.");
+        setStatus("error");
+      },
+    });
 
-        s.on("matchmaking:canceled", () => {
-            setStatus("idle");
-        });
+    // keep this if you want auto-connect on mount;
+    // remove if you only want to connect on "Start Matchmaking"
+    // SocketSingleton.ensureConnected();
 
-        s.on("matchmaking:error", (msg : string) => {
-            setErrorMsg(msg || "Matchmaking error.");
-            setStatus("error");
-        });
-
-        socketRef.current = s;
-        return s;
-    };
-
-    const startMatchmaking = () => {
-        console.log("Start matchmaking clicked.");
-        const s = getSocket();
-
-        if (!s.connected) {
-            console.log("Connecting socket...");
-            s.connect();
-        }
-        s.emit("matchmaking:start");
-    };
-
-    const cancelMatchmaking = () => {
-        const s= socketRef.current;
-        if (!s) {
-            setStatus("idle");
-            return;
-        }
+    return () => {
+      // auto-cancel if leaving mid-search (optional)
+      try {
         s.emit("matchmaking:cancel");
+      } catch {}
+
+      unsubscribe();
+      socketRef.current = null;
     };
+  }, []);
 
-    useEffect(() => {
-        return () => {
-            const s = socketRef.current;
-            if (s) {
-                try {
-                    s.emit("matchmaking:cancel");
-                } catch {}
-                s.removeAllListeners();
-                s.disconnect();
-                socketRef.current = null;
-            }
-        };
-    }, []);
+  const startMatchmaking = () => {
+    SocketSingleton.ensureConnected();
+    SocketSingleton.getSocket().emit("matchmaking:start");
+  };
 
-    // temp placeholders and styling. Consider replacing
-    return (
-        <div className='app'>
-            <div style={{ padding: 24, fontFamily: "system-ui, sans-serif" }}>
-                <h2>Matchmaking Test</h2>
+  const cancelMatchmaking = () => {
+    SocketSingleton.getSocket().emit("matchmaking:cancel");
+  };
 
-                <div style={{ marginBottom: 12, fontSize: 14, opacity: 0.8 }}>
-                    Server: {SOCKET_URL}
-                    <br />
-                    Your socket: {userSocketId || "(not connected)"}
-                </div>
+  return (
+    <div style={{ padding: 24, fontFamily: "system-ui, sans-serif" }}>
+      <h2>Matchmaking Test</h2>
 
-                {status === "idle" && (
-                    <button onClick={startMatchmaking} style={btnStyle}>
-                    Start Matchmaking
-                    </button>
-                )}
+      <div style={{ marginBottom: 12, fontSize: 14, opacity: 0.8 }}>
+        Server: {SOCKET_URL}
+        <br />
+        Your socket: {userSocketId || "(not connected)"}
+      </div>
 
-                {status === "searching" && (
-                    <div style={boxStyle}>
-                        <div style={{ marginBottom: 12 }}>
-                            <strong>Searching for an opponent…</strong>
-                            <div style={{ fontSize: 13, opacity: 0.8 }}>
-                            Open this page in a second browser/tab to match.
-                            </div>
-                        </div>
+      {status === "idle" && (
+        <button onClick={startMatchmaking} style={btnStyle}>
+          Start Matchmaking
+        </button>
+      )}
 
-                        <button onClick={cancelMatchmaking} style={btnStyle}>
-                            Cancel
-                        </button>
-                    </div>
-                )}
-
-                {status === "matched" && (
-                    <div style={boxStyle}>
-                    <div style={{ marginBottom: 8 }}>
-                        <strong>Match found</strong>
-                    </div>
-                    <div style={{ fontSize: 14 }}>
-                        Match ID: <code>{matchId}</code>
-                        <br />
-                        Opponent: <code>{opponentId}</code>
-                    </div>
-
-                    <div style={{ marginTop: 12, fontSize: 13, opacity: 0.85 }}>
-                        Next step: navigate to your game page and join room <code>{matchId}</code>.
-                    </div>
-
-                    <button
-                        onClick={() => {
-                        // For now, just reset. Later you can navigate to /game/:matchId
-                        setStatus("idle");
-                        setMatchId("");
-                        setOpponentId("");
-                        }}
-                        style={{ ...btnStyle, marginTop: 12 }}
-                    >
-                        Back
-                    </button>
-                    </div>
-                )}
-
-                {status === "error" && (
-                    <div style={boxStyle}>
-                    <strong style={{ color: "crimson" }}>Error</strong>
-                    <div style={{ marginTop: 8 }}>{errorMsg}</div>
-
-                    <button
-                        onClick={() => {
-                        setStatus("idle");
-                        setErrorMsg("");
-                        }}
-                        style={{ ...btnStyle, marginTop: 12 }}
-                    >
-                        Back
-                    </button>
-                    </div>
-                )}
-                </div>
+      {status === "searching" && (
+        <div style={boxStyle}>
+          <div style={{ marginBottom: 12 }}>
+            <strong>Searching for an opponent…</strong>
+            <div style={{ fontSize: 13, opacity: 0.8 }}>
+              Open this page in a second browser/tab to match.
             </div>
-    );
+          </div>
+
+          <button onClick={cancelMatchmaking} style={btnStyle}>
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {status === "matched" && (
+        <div style={boxStyle}>
+          <div style={{ marginBottom: 8 }}>
+            <strong>Match found</strong>
+          </div>
+
+          <div style={{ fontSize: 14 }}>
+            Match ID: <code>{matchId}</code>
+            <br />
+            Opponent: <code>{opponentId || "(unknown)"}</code>
+          </div>
+
+          <div style={{ marginTop: 12, fontSize: 13, opacity: 0.85 }}>
+            Next step: navigate to your game page and join room{" "}
+            <code>{matchId}</code>. You are{" "}
+            <strong>Player {playerNumber}</strong>
+          </div>
+
+          <button
+            onClick={() => {
+              if (!matchId) return;
+              navigate(`/room/${matchId}?player=${playerNumber}`);
+            }}
+            style={{ ...btnStyle, marginTop: 12 }}
+          >
+            Join
+          </button>
+
+          <button
+            onClick={() => {
+              setStatus("idle");
+              setMatchId("");
+              setOpponentId("");
+              setPlayerNumber(-1);
+            }}
+            style={{ ...btnStyle, marginTop: 12 }}
+          >
+            Back
+          </button>
+        </div>
+      )}
+
+      {status === "error" && (
+        <div style={boxStyle}>
+          <strong style={{ color: "crimson" }}>Error</strong>
+          <div style={{ marginTop: 8 }}>{errorMsg}</div>
+
+          <button
+            onClick={() => {
+              setStatus("idle");
+              setErrorMsg("");
+            }}
+            style={{ ...btnStyle, marginTop: 12 }}
+          >
+            Back
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 const btnStyle: React.CSSProperties = {

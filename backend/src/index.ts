@@ -5,7 +5,6 @@ import { registerSockets } from "./sockets/RegisterSockets";
 import { config } from "./config";
 
 
-console.log("INDEX FILE LOADED");
 const app = createApp();
 const httpServer = http.createServer(app);
 

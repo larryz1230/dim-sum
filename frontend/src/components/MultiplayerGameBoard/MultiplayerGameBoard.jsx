@@ -1,20 +1,18 @@
 /**
- * GameBoard Component
+ * MultiplayerGameBoard Component
  * Main game grid that displays cells and handles cell selection
  * Based on Figma design: 12 rows x 10 columns grid
  */
 
 import React, { useState, useCallback, useRef } from 'react';
-import { GameCell } from './GameCell';
+import { GameCell } from './GameCell.jsx';
 import './GameBoard.css';
-import tryUpdate from '../../pages/Room.tsx'
 
-export const GameBoard = ({
+export const MultiplayerGameBoard = ({
   cells,
   selectedCellIds: externalSelectedCellIds,
-  onCellClick,
+  onSelectionEnd,
   onSelectionChange,
-  onCellsUpdate,
   isSinglePlayer = false,
   socketRef = null  , // Socket for multiplayer updates
   matchId = null, // Match ID for multiplayer
@@ -126,42 +124,11 @@ export const GameBoard = ({
     if (startPos && endPos) {
       const cellsInBox = getCellsInBoxFromPositions(startPos, endPos);
       console.log('Cells in box:', cellsInBox);
-      
-      if (isSinglePlayer) {
-        // Calculate sum
-        let sum = 0;
-        cellsInBox.forEach((cellId) => {
-          for (const row of cells) {
-            for (const cell of row) {
-              if (cell.id === cellId) {
-                sum += cell.value;
-                break;
-              }
-            }
-          }
-        });
-        
-        // If sum equals 10, remove those cells (all at once)
-        if (sum === 10 && onCellsUpdate) {
-          const updatedCells = cells.map(row => 
-            row.map(cell => 
-              cellsInBox.includes(cell.id) ? { ...cell, value: 0 } : cell
-            )
-          );
-          // Update all cells simultaneously
-          onCellsUpdate([...updatedCells]);
-        }
-      } else {
-        console.log("here");
-        console.log(socketRef.current);
-        console.log(matchId);
-        socketRef.current.emit("game:update", {
-          roomId: matchId,
-          player: socketRef.current.id, // Send player ID for multiplayer updates
-          cells: cellsInBox,
-        });
-        
+
+      if (cellsInBox.length > 0) {
+        onSelectionEnd?.(cellsInBox);
       }
+      
       // Clear selection
       if (onSelectionChange) {
         onSelectionChange(new Set());
@@ -173,7 +140,16 @@ export const GameBoard = ({
     setIsDragging(false);
     setStartPos(null);
     setEndPos(null);
-  }, [isDragging, startPos, endPos, getCellsInBoxFromPositions, disabled, onSelectionChange, isControlled, cells, onCellsUpdate]);
+  }, [
+    isDragging, 
+    startPos, 
+    endPos, 
+    getCellsInBoxFromPositions, 
+    disabled, 
+    onSelectionChange, 
+    onSelectionEnd,
+    isControlled, 
+  ]);
 
   // Calculate sum of selected cells
   const selectedSum = Array.from(selectedCellIds).reduce((sum, cellId) => {
