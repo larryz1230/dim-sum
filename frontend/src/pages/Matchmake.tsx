@@ -34,7 +34,7 @@ export default function Matchmake() {
         setStatus("error");
       },
 
-      [SOCKET_EVENTS.MATCH_QUEUED] : () => {
+      [SOCKET_EVENTS.MATCH_QUEUED]: () => {
         setStatus("searching");
         setErrorMsg("");
         setMatchId("");
@@ -49,6 +49,7 @@ export default function Matchmake() {
         setMatchId(payload.matchId);
         setPlayerNumber(payload.playerNumber);
         setOpponentId(payload.opponentId ?? "");
+        navigate(`/room/${payload.matchId}?player=${payload.playerNumber}`);
       },
 
       [SOCKET_EVENTS.MATCH_CANCELED]: () => setStatus("idle"),
@@ -110,48 +111,6 @@ export default function Matchmake() {
 
           <button onClick={cancelMatchmaking} style={btnStyle}>
             Cancel
-          </button>
-        </div>
-      )}
-
-      {status === "matched" && (
-        <div style={boxStyle}>
-          <div style={{ marginBottom: 8 }}>
-            <strong>Match found</strong>
-          </div>
-
-          <div style={{ fontSize: 14 }}>
-            Match ID: <code>{matchId}</code>
-            <br />
-            Opponent: <code>{opponentId || "(unknown)"}</code>
-          </div>
-
-          <div style={{ marginTop: 12, fontSize: 13, opacity: 0.85 }}>
-            Next step: navigate to your game page and join room{" "}
-            <code>{matchId}</code>. You are{" "}
-            <strong>Player {playerNumber}</strong>
-          </div>
-
-          <button
-            onClick={() => {
-              if (!matchId) return;
-              navigate(`/room/${matchId}?player=${playerNumber}`);
-            }}
-            style={{ ...btnStyle, marginTop: 12 }}
-          >
-            Join
-          </button>
-
-          <button
-            onClick={() => {
-              setStatus("idle");
-              setMatchId("");
-              setOpponentId("");
-              setPlayerNumber(-1);
-            }}
-            style={{ ...btnStyle, marginTop: 12 }}
-          >
-            Back
           </button>
         </div>
       )}
