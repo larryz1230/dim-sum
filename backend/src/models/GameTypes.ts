@@ -1,5 +1,13 @@
 export type PlayerNumber = 1 | 2;
 
+export type PlayerInfo = {
+  playerNumber: 1 | 2;
+  userId: string;
+  username?: string;
+};
+
+export type PlayersBySocketId = Record<string, PlayerInfo>;
+
 export type ClearedCell = {
   row: number;
   col: number;
@@ -20,7 +28,7 @@ export type GameStateEmit = {
   score1: number, 
   score2: number, 
   timer: number,
-  players: Record<string, 1 | 2>, 
+  players: Record<string, PlayerInfo>, 
 };
 
 export type JoinPayload = { roomId: string };
@@ -32,5 +40,3 @@ export type GameUpdatePayload = {
     col: number
   }[];
 };
-
-export type PlayersBySocketId = Record<string, PlayerNumber>;

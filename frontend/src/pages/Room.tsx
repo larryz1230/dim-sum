@@ -10,6 +10,7 @@ import { Timer } from "../components/Timer";
 import { GameOver } from "../components/GameOver";
 import { Score } from "../components/Score";
 import { Leaderboard } from "../components/Leaderboard";
+import { SOCKET_EVENTS } from "../../../shared/SocketEvents";
 
 // TODO: fix this linting issue, it shows up but gives an error.
 import settingsIcon from "../imgs/Settings.png";
@@ -70,12 +71,12 @@ export default function Room() {
 
     const unsubscribe = SocketSingleton.subscribe({
       connect: () => {
-        s.emit("room:join", { roomId: matchId });
+        s.emit(SOCKET_EVENTS.ROOM_JOIN, { roomId: matchId });
         setConnected(true);
       },
       disconnect: () => setConnected(false),
 
-      "room:game_state": (gameState: GameStateEmit) => {
+      [SOCKET_EVENTS.ROOM_GAME_STATE]: (gameState: GameStateEmit) => {
         console.log("Received game state update:", gameState);
         if (gameState.roomId !== matchId) return;
         setCells(gameState.board);
@@ -91,22 +92,22 @@ export default function Room() {
         }
       },
 
-      "room:message": (msg) => setMessages((prev) => [...prev, msg]),
-      "room:count": (newCount) => setCount(newCount),
+      [SOCKET_EVENTS.ROOM_MESSAGE]: (msg) => setMessages((prev) => [...prev, msg]),
+      [SOCKET_EVENTS.ROOM_COUNT]: (newCount) => setCount(newCount),
     });
 
     SocketSingleton.ensureConnected();
 
     // if already connected (hot reload), join immediately
     if (s.connected) {
-      s.emit("room:join", { roomId: matchId });
+      s.emit(SOCKET_EVENTS.ROOM_JOIN, { roomId: matchId });
       setConnected(true);
     }
 
     return () => {
       // leave just this room, keep socket alive for other pages
       try {
-        s.emit("room:leave", { roomId: matchId });
+        s.emit(SOCKET_EVENTS.ROOM_LEAVE, { roomId: matchId });
       } catch {}
       unsubscribe();
       socketRef.current = null;
@@ -128,7 +129,7 @@ export default function Room() {
       return { row: Number(row), col: Number(col) };
     });
 
-    s.emit("game:update", {
+    s.emit(SOCKET_EVENTS.GAME_UPDATE, {
       roomId: matchId,
       clearedCells,
     });
