@@ -10,6 +10,7 @@ import { Timer } from "../components/Timer";
 import { GameOver } from "../components/GameOver";
 import { Score } from "../components/Score";
 import { Leaderboard } from "../components/Leaderboard";
+import { SOCKET_EVENTS } from "../../../shared/SocketEvents";
 
 // TODO: fix this linting issue, it shows up but gives an error.
 import settingsIcon from "../imgs/Settings.png";
@@ -29,7 +30,7 @@ export default function Room() {
   type Board = Cell[][];
   type GameStateEmit = {
     roomId: string;
-    Board: Board;
+    board: Board;
     score1: number;
     score2: number;
     timer: number;
@@ -54,8 +55,9 @@ export default function Room() {
   const [showLogin, setShowLogin] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
   const [gameResult, setGameResult] = useState<GameResult>(null);
-  const [score, setScore] = useState(0);
-  const [gameMode, setGameMode] = useState<GameMode>("singleplayer");
+  const [score1, setScore1] = useState(0);
+  const [score2, setScore2] = useState(0);
+  const [gameMode, setGameMode] = useState<GameMode>("multiplayer");
   const [boardWidth, setBoardWidth] = useState<number | null>(null);
   const [gameKey, setGameKey] = useState(0);
 
@@ -69,50 +71,48 @@ export default function Room() {
 
     const unsubscribe = SocketSingleton.subscribe({
       connect: () => {
-        s.emit("room:join", { roomId: matchId });
+        s.emit(SOCKET_EVENTS.ROOM_JOIN, { roomId: matchId });
         setConnected(true);
       },
       disconnect: () => setConnected(false),
 
-      "room:game_state": (gameState: GameStateEmit) => {
+      [SOCKET_EVENTS.ROOM_GAME_STATE]: (gameState: GameStateEmit) => {
         console.log("Received game state update:", gameState);
         if (gameState.roomId !== matchId) return;
-        setCells(gameState.Board);
+        setCells(gameState.board);
         setTimer(gameState.timer);
         // TODO: we need to set both players score and determine winner at end of game.
         const pn = SocketSingleton.getPlayerNumber();
-        if (pn === 1) setScore(gameState.score1);
-        else if (pn === 2) setScore(gameState.score2);
+        if (pn === 1) {
+          setScore1(gameState.score1);
+          setScore2(gameState.score2);
+        } else if (pn === 2) {
+          setScore1(gameState.score2);
+          setScore2(gameState.score1);
+        }
       },
 
-      "room:message": (msg) => setMessages((prev) => [...prev, msg]),
-      "room:count": (newCount) => setCount(newCount),
+      [SOCKET_EVENTS.ROOM_MESSAGE]: (msg) => setMessages((prev) => [...prev, msg]),
+      [SOCKET_EVENTS.ROOM_COUNT]: (newCount) => setCount(newCount),
     });
 
     SocketSingleton.ensureConnected();
 
     // if already connected (hot reload), join immediately
     if (s.connected) {
-      s.emit("room:join", { roomId: matchId });
+      s.emit(SOCKET_EVENTS.ROOM_JOIN, { roomId: matchId });
       setConnected(true);
     }
 
     return () => {
       // leave just this room, keep socket alive for other pages
       try {
-        s.emit("room:leave", { roomId: matchId });
+        s.emit(SOCKET_EVENTS.ROOM_LEAVE, { roomId: matchId });
       } catch {}
       unsubscribe();
       socketRef.current = null;
     };
   }, [matchId]);
-
-  const increment = () => {
-    const s = socketRef.current;
-    if (!s || !matchId) return;
-    console.log("Incrementing count for room:", matchId);
-    s.emit("room:increment", { roomId: matchId });
-  };
 
   const handleSelectionChange = (newSelection: Set<string>) => {
     setSelectedCellIds(newSelection);
@@ -129,7 +129,7 @@ export default function Room() {
       return { row: Number(row), col: Number(col) };
     });
 
-    s.emit("game:update", {
+    s.emit(SOCKET_EVENTS.GAME_UPDATE, {
       roomId: matchId,
       clearedCells,
     });
@@ -140,17 +140,6 @@ export default function Room() {
   const handleTimeUp = () => {
     setGameResult("lose");
     setShowGameOver(true);
-  };
-
-  const handleReplay = () => {
-    setShowGameOver(false);
-    setGameResult(null);
-    setScore(0);
-    setSelectedCellIds(new Set());
-    setGameKey((prev) => prev + 1);
-
-    // optional: ask server to reset
-    // socketRef.current?.emit("game:replay", { roomId: matchId });
   };
 
   useEffect(() => {
@@ -204,7 +193,7 @@ export default function Room() {
         </div>
 
         <div className="app__sidebar">
-          <Score score={score} gameMode={gameMode} />
+          <Score score={score1} opponentScore={score2} gameMode={gameMode} />
           <Leaderboard gameMode={gameMode} />
         </div>
       </div>
@@ -232,9 +221,9 @@ export default function Room() {
 
       {showGameOver && (
         <GameOver
-          result={gameResult}
-          score={score}
-          onReplay={handleReplay}
+          // TODO: add player names here too
+          player1={score1}
+          player2={score2}
           onClose={() => setShowGameOver(false)}
         />
       )}
