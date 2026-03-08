@@ -1,0 +1,97 @@
+.dashboard {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.dashboard__header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.dashboard__header h1 {
+  color: #8B4513;
+  margin: 0;
+  font-size: 2rem;
+}
+
+.dashboard__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard__row {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.dashboard__button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 32px;
+  background-color: #8C3322;
+  color: white;
+  border: 4px solid #482E1D;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 600;
+  transition: transform 0.2s, background-color 0.2s;
+  min-width: 140px;
+}
+
+.dashboard__button:hover {
+  background-color: #A0522D;
+  transform: translateY(-2px);
+}
+
+.dashboard__button img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.dashboard__expanded {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.dashboard__back {
+  padding: 10px 20px;
+  background-color: #E7BC9B;
+  color: #333;
+  border: 2px solid #482E1D;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 16px;
+}
+
+.dashboard__back:hover {
+  background-color: #F0C9A8;
+}
+
+.dashboard__back-arrow {
+  margin-left: 4px;
+}
+
+.fade-in {
+  animation: dashboardFadeIn 0.3s ease-out;
+}
+
+@keyframes dashboardFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
