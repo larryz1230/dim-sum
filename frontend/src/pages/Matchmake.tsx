@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
-import SocketSingleton, { type MatchFoundPayload } from "../Socket";
+import SocketSingleton from "../Socket";
+import type { MatchFoundPayload } from "../../../shared/SocketTypes";
+import { SOCKET_EVENTS } from "../../../shared/SocketEvents";
 import '../App.css'
 
 type Status = "idle" | "searching" | "matched" | "error";
@@ -33,7 +35,7 @@ export default function Matchmake() {
         setStatus("error");
       },
 
-      "matchmaking:queued": () => {
+      [SOCKET_EVENTS.MATCH_QUEUED]: () => {
         setStatus("searching");
         setErrorMsg("");
         setMatchId("");
@@ -41,18 +43,19 @@ export default function Matchmake() {
         setPlayerNumber(-1);
       },
 
-      "matchmaking:match_found": (
+      [SOCKET_EVENTS.MATCH_FOUND]: (
         payload: MatchFoundPayload & { opponentId?: string },
       ) => {
         setStatus("matched");
         setMatchId(payload.matchId);
         setPlayerNumber(payload.playerNumber);
         setOpponentId(payload.opponentId ?? "");
+        navigate(`/room/${payload.matchId}?player=${payload.playerNumber}`);
       },
 
-      "matchmaking:canceled": () => setStatus("idle"),
+      [SOCKET_EVENTS.MATCH_CANCELED]: () => setStatus("idle"),
 
-      "matchmaking:error": (msg) => {
+      [SOCKET_EVENTS.MATCH_ERROR]: (msg) => {
         setErrorMsg(msg || "Matchmaking error.");
         setStatus("error");
       },
@@ -65,7 +68,7 @@ export default function Matchmake() {
     return () => {
       // auto-cancel if leaving mid-search (optional)
       try {
-        s.emit("matchmaking:cancel");
+        s.emit(SOCKET_EVENTS.MATCH_CANCEL);
       } catch {}
 
       unsubscribe();
@@ -75,11 +78,11 @@ export default function Matchmake() {
 
   const startMatchmaking = () => {
     SocketSingleton.ensureConnected();
-    SocketSingleton.getSocket().emit("matchmaking:start");
+    SocketSingleton.getSocket().emit(SOCKET_EVENTS.MATCH_START);
   };
 
   const cancelMatchmaking = () => {
-    SocketSingleton.getSocket().emit("matchmaking:cancel");
+    SocketSingleton.getSocket().emit(SOCKET_EVENTS.MATCH_CANCEL);
   };
 
   return (
@@ -109,48 +112,6 @@ export default function Matchmake() {
 
           <button onClick={cancelMatchmaking} style={btnStyle}>
             Cancel
-          </button>
-        </div>
-      )}
-
-      {status === "matched" && (
-        <div style={boxStyle}>
-          <div style={{ marginBottom: 8 }}>
-            <strong>Match found</strong>
-          </div>
-
-          <div style={{ fontSize: 14 }}>
-            Match ID: <code>{matchId}</code>
-            <br />
-            Opponent: <code>{opponentId || "(unknown)"}</code>
-          </div>
-
-          <div style={{ marginTop: 12, fontSize: 13, opacity: 0.85 }}>
-            Next step: navigate to your game page and join room{" "}
-            <code>{matchId}</code>. You are{" "}
-            <strong>Player {playerNumber}</strong>
-          </div>
-
-          <button
-            onClick={() => {
-              if (!matchId) return;
-              navigate(`/room/${matchId}?player=${playerNumber}`);
-            }}
-            style={{ ...btnStyle, marginTop: 12 }}
-          >
-            Join
-          </button>
-
-          <button
-            onClick={() => {
-              setStatus("idle");
-              setMatchId("");
-              setOpponentId("");
-              setPlayerNumber(-1);
-            }}
-            style={{ ...btnStyle, marginTop: 12 }}
-          >
-            Back
           </button>
         </div>
       )}

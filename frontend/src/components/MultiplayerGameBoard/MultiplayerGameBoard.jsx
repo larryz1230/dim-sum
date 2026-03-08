@@ -28,6 +28,8 @@ export const MultiplayerGameBoard = ({
   const [endPos, setEndPos] = useState(null); // {x, y} in grid coordinates
   const gridRef = useRef(null);
   const boardRef = useRef(null);
+  const startPosRef = useRef(null);
+  const endPosRef = useRef(null);
   
   // Use external or internal state
   const selectedCellIds = externalSelectedCellIds ?? internalSelectedCellIds;
@@ -46,29 +48,46 @@ export const MultiplayerGameBoard = ({
     };
   }, []);
 
-  // Convert grid position to cell coordinates (clamps to valid range)
+  // Convert grid position to cell coordinates (clamps to valid range).
+  // Reads actual DOM dimensions so it works when CSS changes (e.g. @media max-width: 768px).
   const positionToCell = useCallback((pos) => {
     if (!pos || !gridRef.current || !cells.length || !cells[0]?.length) return null;
-    
-    const cellWidth = 40;
-    const gap = 6;
-    const cellSize = cellWidth + gap;
-    
+
     const firstRow = gridRef.current.children[0];
-    if (!firstRow) return null;
-    
+    if (!firstRow?.children?.[0]) return null;
+
+    const firstCell = firstRow.children[0];
+    const cellWidth = firstCell.offsetWidth;
+    const cellHeight = firstCell.offsetHeight;
+
+    let colGap = 6;
+    if (firstRow.children[1]) {
+      const r0 = firstRow.children[0].getBoundingClientRect();
+      const r1 = firstRow.children[1].getBoundingClientRect();
+      colGap = r1.left - r0.right;
+    }
+
+    let rowGap = 6;
+    if (gridRef.current.children[1]) {
+      const row0 = gridRef.current.children[0];
+      const row1 = gridRef.current.children[1];
+      rowGap = row1.offsetTop - row0.offsetTop - row0.offsetHeight;
+    }
+
+    const cellSizeX = cellWidth + colGap;
+    const cellSizeY = cellHeight + rowGap;
+
     const rowWidth = firstRow.offsetWidth;
-    const totalCellsWidth = cells[0].length * cellSize - gap;
-    const centeringOffset = (rowWidth - totalCellsWidth) / 2;
-    
+    const totalCellsWidth = cells[0].length * cellSizeX - colGap;
+    const centeringOffset = Math.max(0, (rowWidth - totalCellsWidth) / 2);
+
     const adjustedX = pos.x - centeringOffset;
-    const col = Math.floor(adjustedX / cellSize);
-    const row = Math.floor(pos.y / cellSize);
-    
-    // Clamp to valid range - allows positions outside grid to map to edge cells
+    const col = Math.floor(adjustedX / cellSizeX);
+    const row = Math.floor(pos.y / cellSizeY);
+
     const clampedCol = Math.max(0, Math.min(col, cells[0].length - 1));
     const clampedRow = Math.max(0, Math.min(row, cells.length - 1));
-    
+
     return { row: clampedRow, col: clampedCol };
   }, [cells]);
 
@@ -96,59 +115,85 @@ export const MultiplayerGameBoard = ({
     return cellsInBox;
   }, [cells, positionToCell]);
 
-  // Handle mouse down - start box selection
+  // Handle mouse down - start box selection (left button only).
+  // We attach document listeners HERE immediately, not in useEffect. Otherwise a fast click
+  // (mousedown then quick mouseup) can fire mouseup before useEffect runs, and we miss it.
   const handleMouseDown = useCallback((e) => {
-    if (disabled) return;
+    if (disabled || e.button !== 0) return;
     const pos = getGridPosition(e);
-    if (pos) {
-      // Allow starting anywhere within the grid container
-      setIsDragging(true);
-      setStartPos(pos);
-      setEndPos(pos);
-    }
-  }, [disabled, getGridPosition]);
+    if (!pos) return;
 
-  // Handle mouse move - update box selection
-  const handleMouseMove = useCallback((e) => {
-    if (!isDragging || disabled) return;
-    const pos = getGridPosition(e);
-    if (pos) {
-      setEndPos(pos);
-    }
-  }, [isDragging, disabled, getGridPosition]);
+    startPosRef.current = pos;
+    endPosRef.current = pos;
+    setIsDragging(true);
+    setStartPos(pos);
+    setEndPos(pos);
 
-  // Handle mouse up - finalize box selection
-  const handleMouseUp = useCallback(() => {
-    if (!isDragging || disabled) return;
-    
-    if (startPos && endPos) {
-      const cellsInBox = getCellsInBoxFromPositions(startPos, endPos);
-      console.log('Cells in box:', cellsInBox);
+    const opts = { capture: true };
 
-      if (cellsInBox.length > 0) {
-        onSelectionEnd?.(cellsInBox);
+    const onDocumentMouseUp = (upE) => {
+      if (upE.button !== 0) return;
+      document.removeEventListener('mouseup', onDocumentMouseUp, opts);
+      document.removeEventListener('mousemove', onDocumentMouseMove, opts);
+
+      const s = startPosRef.current;
+      const ep = endPosRef.current;
+      if (s && ep) {
+        const cellsInBox = getCellsInBoxFromPositions(s, ep);
+        if (cellsInBox.length > 0) {
+          let sum = 0;
+          for (const cellId of cellsInBox) {
+            for (const row of cells) {
+              for (const cell of row) {
+                if (cell.id === cellId) {
+                  sum += cell.value;
+                  break;
+                }
+              }
+            }
+          }
+          if (sum === targetSum) onSelectionEnd?.(cellsInBox);
+        }
+        if (onSelectionChange) onSelectionChange(new Set());
+        else if (!isControlled) setInternalSelectedCellIds(new Set());
       }
-      
-      // Clear selection
-      if (onSelectionChange) {
-        onSelectionChange(new Set());
-      } else if (!isControlled) {
-        setInternalSelectedCellIds(new Set());
+
+      startPosRef.current = null;
+      endPosRef.current = null;
+      setIsDragging(false);
+      setStartPos(null);
+      setEndPos(null);
+    };
+
+    const onDocumentMouseMove = (moveE) => {
+      // If left button released, end drag (safety net if mouseup missed)
+      if (!(moveE.buttons & 1)) {
+        onDocumentMouseUp(moveE);
+        return;
       }
-    }
-    
-    setIsDragging(false);
-    setStartPos(null);
-    setEndPos(null);
+      // Only update box while cursor is within the board
+      if (!boardRef.current) return;
+      const rect = boardRef.current.getBoundingClientRect();
+      const { clientX: x, clientY: y } = moveE;
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) return;
+      const p = getGridPosition(moveE);
+      if (p) {
+        endPosRef.current = p;
+        setEndPos(p);
+      }
+    };
+
+    document.addEventListener('mouseup', onDocumentMouseUp, opts);
+    document.addEventListener('mousemove', onDocumentMouseMove, opts);
   }, [
-    isDragging, 
-    startPos, 
-    endPos, 
-    getCellsInBoxFromPositions, 
-    disabled, 
-    onSelectionChange, 
+    disabled,
+    getGridPosition,
+    getCellsInBoxFromPositions,
     onSelectionEnd,
-    isControlled, 
+    onSelectionChange,
+    isControlled,
+    targetSum,
+    cells,
   ]);
 
   // Calculate sum of selected cells
@@ -213,9 +258,6 @@ export const MultiplayerGameBoard = ({
       ref={boardRef}
       className={`game-board ${disabled ? 'game-board--disabled' : ''}`}
       onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
       style={{ cursor: isDragging ? 'crosshair' : 'default', userSelect: 'none' }}
     >
       <div 
