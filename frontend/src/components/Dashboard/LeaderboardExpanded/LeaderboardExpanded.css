@@ -1,0 +1,25 @@
+.leaderboard-expanded {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.leaderboard-expanded h2 {
+  margin: 0;
+  color: #8B4513;
+}
+
+.leaderboard-expanded p {
+  margin: 0;
+  color: #333;
+}
+
+.leaderboard-expanded__play {
+  padding: 10px 20px;
+  background-color: #8C3322;
+  color: white;
+  border: 2px solid #482E1D;
+  border-radius: 8px;
+  cursor: pointer;
+}
