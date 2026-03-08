@@ -1,10 +1,10 @@
 .app {
   min-height: 100vh;
-  background-color: #E7BC9B;
   padding: 80px 20px 20px 20px;
 }
 
 .app__header {
+  font-family: 'Nunito', sans-serif;
   text-align: center;
   margin-bottom: 30px;
 }

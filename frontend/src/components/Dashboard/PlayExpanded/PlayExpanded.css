@@ -5,6 +5,7 @@
     align-items: center;
     height: 100%;
     margin: 40px auto;
+    row-gap: 30px;
 }
 
 .play-content a {
@@ -16,7 +17,6 @@
     background: #daa47b;
     width: 60vw;
     height: 10vw;
-    margin-bottom: 30px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -26,6 +26,7 @@
     color: #802817;
     border-radius: 10px;
     border: none;
+    cursor: pointer;
 }
 
 .play-button:hover {
