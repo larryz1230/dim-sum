@@ -5,6 +5,7 @@ import { handleSignUp } from '../services/api';
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const Register: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    const { error: signUpError } = await handleSignUp(email, password);
+    const { error: signUpError } = await handleSignUp(email, password, username);
 
     if (signUpError) {
       setError(signUpError instanceof Error ? signUpError.message : 'Registration failed');
@@ -34,6 +35,17 @@ const Register: React.FC = () => {
         {error && <div className="error-banner">{error}</div>}
 
         <form onSubmit={onRegisterSubmit}>
+          <div className="input-group">
+            <label>Username</label>
+            <input
+              type="text"
+              placeholder="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+
           <div className="input-group">
             <label>Email Address</label>
             <input

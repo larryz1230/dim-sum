@@ -11,7 +11,7 @@ export default function Dashboard() {
     };
 
     return (
-        <div>
+        <div className="dashboard-container">
             <h1>Dashboard</h1>
             <p>Welcome to the Dumpling Destroyer dashboard!</p>
             <button onClick={onSignOut}>Sign Out</button>

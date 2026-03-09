@@ -18,24 +18,29 @@ export const handleLogin = async (email: string, password: string) => {
 }
 
 // Sign Up Function (For new accounts)
-export const handleSignUp = async (email: string, password: string) => {
+export const handleSignUp = async (email: string, password: string, username: string) => {
   try {
-    const { data, error } = await supabase.auth.signUp({
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: email,
       password: password,
-    })
-    
-    if (error) {
-      console.error('SignUp error:', error);
-      return { data: null, error: new Error(error.message) }
+      options: {
+        data: {
+          username: username, 
+          rating: 1000,
+        }
+      }
+    });
+
+    if (signUpError) {
+      console.error('SignUp error:', signUpError);
+      return { data: null, error: new Error(signUpError.message) };
     }
-    
-    console.log('SignUp success:', data);
-    // Return data even if null (Supabase returns null when email confirmation is required)
-    return { data: data || null, error: null }
+
+    console.log('SignUp success:', signUpData);
+    return { data: signUpData || null, error: null };
   } catch (error) {
     console.error('SignUp catch error:', error);
-    return { data: null, error: error instanceof Error ? error : new Error('Failed to fetch') }
+    return { data: null, error: error instanceof Error ? error : new Error('Failed to fetch') };
   }
 }
 
