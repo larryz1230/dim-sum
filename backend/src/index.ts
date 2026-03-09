@@ -18,5 +18,5 @@ const io = new Server(httpServer, {
 registerSockets(io);
 
 httpServer.listen(config.port, () => {
-    console.log(`Server running on port ${config.port}: http://localhost:9090`);
+    console.log(`Server running on port ${config.port}: https://cs130-group4.onrender.com`);
 })

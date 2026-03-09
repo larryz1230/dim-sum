@@ -8,7 +8,7 @@ import { SOCKET_EVENTS } from "../../../shared/SocketEvents";
 type Status = "idle" | "searching" | "matched" | "error";
 
 // shown in UI only (the singleton can use its own SOCKET_URL internally)
-const SOCKET_URL = "http://localhost:9090";
+const SOCKET_URL = import.meta.env.SOCKET_URL;
 
 export default function Matchmake() {
   const socketRef = useRef<Socket | null>(null);
