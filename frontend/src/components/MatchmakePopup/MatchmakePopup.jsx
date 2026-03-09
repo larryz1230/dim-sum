@@ -4,7 +4,7 @@ import SocketSingleton from '../../Socket';
 import { SOCKET_EVENTS } from '../../../../shared/SocketEvents';
 import './MatchmakePopup.css';
 
-const SOCKET_URL = 'http://localhost:9090';
+const SOCKET_URL = 'https://cs130-group4.onrender.com'
 
 export default function MatchmakePopup({ onClose }) {
   const socketRef = useRef(null);
@@ -40,16 +40,25 @@ export default function MatchmakePopup({ onClose }) {
 
     return () => {
       try {
-        s.emit(SOCKET_EVENTS.MATCH_CANCEL);
+        if (s.connected) {
+          s.emit(SOCKET_EVENTS.MATCH_CANCEL);
+        }
       } catch (_) {}
       unsubscribe();
       socketRef.current = null;
     };
   }, [navigate]);
 
-  const startMatchmaking = () => {
-    SocketSingleton.ensureConnected();
-    SocketSingleton.getSocket().emit(SOCKET_EVENTS.MATCH_START);
+  const startMatchmaking = async () => {
+    try {
+      await SocketSingleton.ensureConnected();
+      SocketSingleton.getSocket().emit(SOCKET_EVENTS.MATCH_START);
+    } catch (err) {
+      setErrorMsg(
+        err instanceof Error ? err.message : "Failed to connect to matchmaking."
+      );
+      setStatus("error");
+    }
   };
 
   const cancelMatchmaking = () => {

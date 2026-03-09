@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import happyBun from '../../imgs/Happy Bun.png';
 import sadBun from '../../imgs/Sad Bun.png';
 import { handleLogin, handleSignUp } from '../../services/api';
+import SocketSingleton from '../../Socket';
 import './Login.css';
 
 export const Login = ({ onClose }) => {
@@ -20,10 +21,23 @@ export const Login = ({ onClose }) => {
       if (loginError) {
         setError(loginError instanceof Error ? loginError.message : 'Login failed');
         setLoading(false);
-      } else if (data) {
+        return;
+      } 
+
+      const accessToken = data?.session?.access_token;
+      console.log("Login accessToken", accessToken);
+
+      if (!accessToken) {
+        setError('Login succeeded but no session token found.');
         setLoading(false);
-        onClose();
+        return;
       }
+
+      SocketSingleton.setAuthToken(accessToken);
+      console.log("Set auth token on singleton");
+
+      setLoading(false);
+      onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch. Please check your connection and Supabase configuration.');
       setLoading(false);
