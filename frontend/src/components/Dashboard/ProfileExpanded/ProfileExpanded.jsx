@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
-import React, { useState } from 'react';
 import { handleSignOut } from '../../../services/api';
 import { useNavigate } from 'react-router-dom';
 import goldBunImg from '../../../imgs/Gold Bun.png';
@@ -13,11 +12,8 @@ export default function ProfileExpanded() {
   const [isEditingBio, setIsEditingBio] = useState(false);
 
   useEffect(() => {
-    console.log('Debugging Profile Page:');
-    console.log('Username:', username);
-    console.log('Email:', email);
-    console.log('Rating:', rating);
-  }, [username, email, rating]);
+    console.log('[ProfileExpanded] user:', !!user, 'username:', username, 'email:', email, 'rating:', rating);
+  }, [user, username, email, rating]);
 
   const onSignOut = async () => {
     try {
@@ -33,29 +29,16 @@ export default function ProfileExpanded() {
 
   return (
     <div className="profile-expanded">
-      <h2>Profile</h2>
-      {user ? (
-        <div className="profile-details">
-          <p><strong>Username:</strong> {username}</p>
-          <p><strong>Email:</strong> {email}</p>
-          <p><strong>Rating:</strong> {rating}</p>
-        </div>
-      ) : (
-        <p>Loading user data...</p>
-      )}
-      <button className="profile-expanded__signout" onClick={onSignOut}>
-        Sign Out
-      </button>
       <div className="profile-expanded__card">
         <div className="profile-expanded__top-row">
           <div className="profile-expanded__avatar">
             <img src={goldBunImg} alt="Profile" />
           </div>
           <div className="profile-expanded__user-info">
-            <h2 className="profile-expanded__username">Username</h2>
-            <p className="profile-expanded__rank">Rank: 1</p>
-            <p className="profile-expanded__rank">Feature 1</p>
-            <p className="profile-expanded__rank">Feature 2</p>
+            <h2 className="profile-expanded__username">{username ?? 'Username'}</h2>
+            <p className="profile-expanded__rank">Rating: {rating ?? '1'}</p>
+            <p className="profile-expanded__feature">Feature 1: feature</p>
+            <p className="profile-expanded__feature">Feature 2: feature</p>
           </div>
         </div>
         <div className="profile-expanded__bio-section">

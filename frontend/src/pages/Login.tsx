@@ -13,6 +13,7 @@ const Login: React.FC = () => {
   const { user } = useAuth();
 
   useEffect(() => {
+    console.log('[Login] useEffect: user=', user ? 'logged in' : 'null', 'redirecting to /dashboard?', !!user);
     if (user) {
       navigate('/dashboard');
     }

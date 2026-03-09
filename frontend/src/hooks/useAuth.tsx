@@ -43,6 +43,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const initializeAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('[useAuth] initializeAuth: session=', !!session, 'user=', !!session?.user);
       
       setSession(session);
       setUser(session?.user ?? null);
@@ -56,7 +57,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     initializeAuth();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[useAuth] onAuthStateChange:', event, 'session=', !!session, 'user=', !!session?.user);
       setSession(session);
       setUser(session?.user ?? null);
       setEmail(session?.user?.email ?? null);
