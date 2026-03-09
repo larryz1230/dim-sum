@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { GameBoard } from "../components/GameBoard";
 import { Settings } from "../components/Settings";
 import { Login } from "../components/Login";
@@ -45,6 +46,7 @@ const createSampleBoard = (rows = 12, cols = 10): Board => {
 };
 
 export default function App(): React.ReactElement {
+  const navigate = useNavigate();
   const [cells, setCells] = useState<Board>(() => createSampleBoard(13, 17));
   const [selectedCellIds, setSelectedCellIds] = useState<Set<string>>(
     () => new Set(),
@@ -57,7 +59,6 @@ export default function App(): React.ReactElement {
   const [gameMode, setGameMode] = useState<GameMode>("singleplayer");
   const [boardWidth, setBoardWidth] = useState<number | null>(null);
   const [gameKey, setGameKey] = useState(0);
-  const [timer, setTimer] = useState(120);
 
   const boardContainerRef = useRef<HTMLDivElement>(null);
 
@@ -90,7 +91,6 @@ export default function App(): React.ReactElement {
     setShowGameOver(false);
     setGameResult(null);
     setScore(0);
-    setTimer(120);
     setCells(createSampleBoard(13, 17));
     setSelectedCellIds(new Set());
     setGameKey((prev) => prev + 1);
@@ -135,8 +135,6 @@ export default function App(): React.ReactElement {
             <Timer
               key={gameKey}
               boardWidth={boardWidth}
-              time={timer}
-              setTime={setTimer}
               onTimeUp={handleTimeUp}
               isPaused={showSettings || showLogin}
             />
@@ -163,6 +161,8 @@ export default function App(): React.ReactElement {
             setShowSettings(false);
             setShowLogin(true);
           }}
+          onProfileClick={() => navigate('/dashboard')}
+          onLeaderboardClick={() => navigate('/dashboard', { state: { panel: 'leaderboard' } })}
           gameMode={gameMode}
           onGameModeChange={setGameMode}
         />
