@@ -4,7 +4,7 @@ import SocketSingleton from '../../Socket';
 import { SOCKET_EVENTS } from '../../../../shared/SocketEvents';
 import './MatchmakePopup.css';
 
-const SOCKET_URL = 'https://cs130-group4.onrender.com'
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 export default function MatchmakePopup({ onClose }) {
   const socketRef = useRef(null);

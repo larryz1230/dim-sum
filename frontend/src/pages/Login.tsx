@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { handleLogin } from '../services/api'
+import { useAuth } from '../hooks/useAuth';
 import './Login.css'
 
 const Login: React.FC = () => {
@@ -9,6 +10,13 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate])
 
   const onLoginSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()

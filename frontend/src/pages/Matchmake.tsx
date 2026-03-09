@@ -8,7 +8,7 @@ import { SOCKET_EVENTS } from "../../../shared/SocketEvents";
 type Status = "idle" | "searching" | "matched" | "error";
 
 // shown in UI only (the singleton can use its own SOCKET_URL internally)
-const SOCKET_URL = "https://cs130-group4.onrender.com";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 export default function Matchmake() {
   const socketRef = useRef<Socket | null>(null);

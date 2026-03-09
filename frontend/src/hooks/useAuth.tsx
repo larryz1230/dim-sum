@@ -6,6 +6,9 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  rating: number | null;
+  username: string | null;
+  email: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -14,29 +17,65 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [rating, setRating] = useState<number | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+
+  const fetchProfileData = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('rating, username')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      
+      setRating(data.rating);
+      setUsername(data.username);
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      setRating(null);
+      setUsername(null);
+    }
+  };
 
   useEffect(() => {
-    const getSession = async () => {
+    const initializeAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      
       setSession(session);
       setUser(session?.user ?? null);
+      setEmail(session?.user?.email ?? null);
+
+      if (session?.user) {
+        await fetchProfileData(session.user.id);
+      }
       setLoading(false);
     };
 
-    getSession();
+    initializeAuth();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setEmail(session?.user?.email ?? null);
+
+      if (session?.user) {
+        await fetchProfileData(session.user.id);
+      } else {
+        setRating(null);
+        setUsername(null);
+      }
     });
 
     return () => {
-      authListener.subscription.unsubscribe();
+      authListener?.subscription.unsubscribe();
     };
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading }}>
+    <AuthContext.Provider value={{ user, session, loading, rating, username, email }}>
       {children}
     </AuthContext.Provider>
   );
