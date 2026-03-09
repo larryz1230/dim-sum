@@ -4,7 +4,7 @@ import SocketSingleton from '../../Socket';
 import { SOCKET_EVENTS } from '../../../../shared/SocketEvents';
 import './MatchmakePopup.css';
 
-const SOCKET_URL = 'http://localhost:9090';
+const SOCKET_URL = import.meta.env.SOCKET_URL;
 
 export default function MatchmakePopup({ onClose }) {
   const socketRef = useRef(null);
