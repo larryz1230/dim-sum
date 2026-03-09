@@ -3,8 +3,8 @@ import { SOCKET_EVENTS } from "../../shared/SocketEvents";
 import { MatchFoundPayload } from "../../shared/SocketTypes";
 import { supabase } from "./services/supabaseClient";
 
-//const SOCKET_URL = 'https://cs130-group4.onrender.com';
-const SOCKET_URL = 'http://localhost:9090';
+const SOCKET_URL = 'https://cs130-group4.onrender.com';
+//const SOCKET_URL = 'http://localhost:9090';
 
 // (optional) type your server->client events here
 type ServerToClientEvents = {
