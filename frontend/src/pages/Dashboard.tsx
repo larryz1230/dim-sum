@@ -2,13 +2,13 @@ import React from 'react';
 import { handleSignOut } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
-const Dashboard: React.FC = () => {
+export default function Dashboard() {
     const navigate = useNavigate();
 
     const onSignOut = async () => {
         await handleSignOut();
         navigate('/login');
-    }
+    };
 
     return (
         <div>
@@ -17,6 +17,4 @@ const Dashboard: React.FC = () => {
             <button onClick={onSignOut}>Sign Out</button>
         </div>
     );
-};
-
-export default Dashboard;
+}

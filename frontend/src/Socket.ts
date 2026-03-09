@@ -2,7 +2,7 @@ import { io, type Socket } from "socket.io-client";
 import { SOCKET_EVENTS } from "../../shared/SocketEvents";
 import { MatchFoundPayload } from "../../shared/SocketTypes";
 
-const SOCKET_URL = "http://localhost:9090";
+const SOCKET_URL = 'https://cs130-group4.onrender.com';
 
 // (optional) type your server->client events here
 type ServerToClientEvents = {

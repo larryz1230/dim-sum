@@ -7,11 +7,12 @@ import type {
     PlayersBySocketId,
 } from "../models/GameTypes";
 
+// Match single-player board size: 13 rows × 17 columns
 export function createInitialGameState(
     roomId: string,
     players: PlayersBySocketId,
-    rows = 12,
-    cols = 10
+    rows = 13,
+    cols = 17
 ) : GameStateEmit {
     return {
         roomId,
@@ -23,7 +24,7 @@ export function createInitialGameState(
     };
 }
 
-export const createSampleBoard = (rows = 12, cols = 10): Board => {
+export const createSampleBoard = (rows = 13, cols = 17): Board => {
   const cells: Board = [];
 
   for (let row = 0; row < rows; row++) {
