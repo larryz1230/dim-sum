@@ -12,6 +12,8 @@ import fightingBunsImg from '../../imgs/FightingBuns.png';
 import goldBunImg from '../../imgs/Gold Bun.png';
 import individualBaoImg from '../../imgs/individual bao 2.png';
 import settingsIcon from '../../imgs/Settings.png';
+import arrowImg from '../../imgs/Arrow.png';
+import homeImg from '../../imgs/Home.png';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -73,12 +75,19 @@ export default function Dashboard() {
           <div className="dashboard__expanded fade-in">
             {activePanel === 'profile' && <ProfileExpanded />}
             {activePanel === 'leaderboard' && <LeaderboardExpanded />}
-            <button className="dashboard__back" onClick={() => setActivePanel(null)}>
-              Back <span className="dashboard__back-arrow">&gt;</span>
-            </button>
           </div>
         )}
       </div>
+
+      {activePanel !== null ? (
+        <button className="dashboard__back" onClick={() => setActivePanel(null)}>
+          <img src={arrowImg} alt="Back" />
+        </button>
+      ) : (
+        <button className="dashboard__home" onClick={() => navigate('/')}>
+          <img src={homeImg} alt="Home" />
+        </button>
+      )}
 
       {showMatchmakePopup && (
         <MatchmakePopup onClose={() => setShowMatchmakePopup(false)} />

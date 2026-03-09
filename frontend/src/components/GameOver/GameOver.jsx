@@ -25,7 +25,7 @@ export const GameOver = ({ player1, player2, onClose }) => {
               {isWin ? 'You Win!' : isLose ? 'You Lose!' : 'It\'s a tie!'}
             </p>
           </div>
-          <button className="game-over-button" onClick={() => navigate('/matchmake')}>
+          <button className="game-over-button" onClick={() => navigate('/dashboard')}>
             Return to Lobby
           </button>
         </div>

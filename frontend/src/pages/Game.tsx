@@ -7,8 +7,8 @@ import { Timer } from "../components/Timer";
 import { GameOver } from "../components/GameOver";
 import { Score } from "../components/Score";
 import { Leaderboard } from "../components/Leaderboard";
+import BackToDashboard from "../components/BackToDashboard/BackToDashboard";
 
-// WHY ISN:
 import settingsIcon from "../imgs/Settings.png";
 
 import "../App.css";
@@ -146,6 +146,8 @@ export default function App(): React.ReactElement {
           <Leaderboard gameMode={gameMode} />
         </div>
       </div>
+
+      <BackToDashboard />
 
       <button
         className="app__settings-button"
