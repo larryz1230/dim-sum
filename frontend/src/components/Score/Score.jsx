@@ -6,6 +6,7 @@ export const Score = ({
   me,
   opponent,
   opponentScore = 0,
+  score = 0,
 }) => {
   const isMultiplayer = gameMode === "multiplayer";
 
