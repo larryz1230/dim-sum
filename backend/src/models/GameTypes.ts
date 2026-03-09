@@ -3,7 +3,10 @@ export type PlayerNumber = 1 | 2;
 export type PlayerInfo = {
   playerNumber: 1 | 2;
   userId: string;
-  username?: string;
+  username: string;
+  rating: number;
+  wins: number;
+  losses: number;
 };
 
 export type PlayersBySocketId = Record<string, PlayerInfo>;
@@ -28,7 +31,7 @@ export type GameStateEmit = {
   score1: number, 
   score2: number, 
   timer: number,
-  players: Record<string, PlayerInfo>, 
+  players: PlayersBySocketId, 
 };
 
 export type JoinPayload = { roomId: string };

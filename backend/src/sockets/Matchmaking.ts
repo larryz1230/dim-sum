@@ -4,6 +4,7 @@ import { createInitialGameState } from "../models/GameLogic";
 import { recordCompletedMatch } from "../db/MatchService";
 import { games } from "./Game";
 import { SOCKET_EVENTS } from "../../../shared/SocketEvents";
+import { getProfilesByIds } from "../db/ProfileService";
 
 let waitingSocketId: string | null = null;
 const activeGameTimers = new Map<string, NodeJS.Timeout>();
@@ -27,7 +28,7 @@ function getWaitingOpponent(io: Server) : Socket | undefined {
     return io.sockets.sockets.get(waitingSocketId);
 }
 
-function createMatch(io: Server, player1Socket: Socket, player2Socket: Socket) : string {
+async function createMatch(io: Server, player1Socket: Socket, player2Socket: Socket) : Promise<string> {
     const matchId = randomUUID();
 
     const player1UserId = player1Socket.data.userId;
@@ -37,14 +38,30 @@ function createMatch(io: Server, player1Socket: Socket, player2Socket: Socket) :
         throw new Error("Missing authenticated userId on socket");
     }
 
+    const profiles = await getProfilesByIds([player1UserId, player2UserId]);
+    const player1Profile = profiles.find((p) => p.id === player1UserId);
+    const player2Profile = profiles.find((p) => p.id === player2UserId);
+
+    if (!player1Profile || !player2Profile) {
+        throw new Error("Missing player profile data.");
+    }
+
     const initialState = createInitialGameState(matchId, {
         [player1Socket.id]: {
             playerNumber: 1,
             userId: player1UserId,
+            username: player1Profile.username,
+            rating: player1Profile.rating,
+            wins: player1Profile.wins,
+            losses: player1Profile.losses,
         },
         [player2Socket.id]: {
             playerNumber: 2,
             userId: player2UserId,
+            username: player2Profile.username,
+            rating: player2Profile.rating,
+            wins: player2Profile.wins,
+            losses: player2Profile.losses,
         },
     });
     
@@ -134,7 +151,7 @@ function stopGameTimer(matchId: string) : void {
     }
 }
 
-function handleMatchmakingStart(io: Server, socket: Socket) : void {
+async function handleMatchmakingStart(io: Server, socket: Socket) : Promise<void> {
     if (waitingSocketId === socket.id) {
         return;  // same socket
     }
@@ -152,7 +169,7 @@ function handleMatchmakingStart(io: Server, socket: Socket) : void {
     }
 
     waitingSocketId = null;
-    createMatch(io, opponentSocket, socket);
+    await createMatch(io, opponentSocket, socket);
 }
 
 function handleMatchmakingCancel(socket: Socket) : void {
@@ -165,7 +182,7 @@ function handleDisconnect(socket: Socket) : void {
 }
 
 export function registerMatchmakingHandlers(io: Server, socket: Socket) : void {
-    socket.on(SOCKET_EVENTS.MATCH_START, () => {
+    socket.on(SOCKET_EVENTS.MATCH_START, async () => {
         handleMatchmakingStart(io, socket);
     });
 

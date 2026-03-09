@@ -1,8 +1,10 @@
 import { io, type Socket } from "socket.io-client";
 import { SOCKET_EVENTS } from "../../shared/SocketEvents";
 import { MatchFoundPayload } from "../../shared/SocketTypes";
+import { supabase } from "./services/supabaseClient";
 
-const SOCKET_URL = 'https://cs130-group4.onrender.com';
+//const SOCKET_URL = 'https://cs130-group4.onrender.com';
+const SOCKET_URL = 'http://localhost:9090';
 
 // (optional) type your server->client events here
 type ServerToClientEvents = {
@@ -84,12 +86,16 @@ export default class SocketSingleton {
     return this.socket;
   }
 
-  static ensureConnected() {
+  static async ensureConnected() {
+    await this.refreshAuthTokenFromSession();
+
     const s = this.getSocket();
 
     s.auth = {
       token: this.authToken,
     };
+
+    console.log("Connecting socket with auth: ", s.auth);
 
     if (!s.connected) {
       s.connect();
@@ -130,5 +136,23 @@ export default class SocketSingleton {
     if (this.socket) {
       this.socket.auth = { token };
     }
+  }
+
+  static async refreshAuthTokenFromSession() : Promise<void> {
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error("Failed to get Supabase session: ", error);
+      this.authToken = null;
+      return;
+    }
+
+    this.authToken = data.session?.access_token ?? null;
+
+    if (this.socket) {
+      this.socket.auth = {token: this.authToken};
+    }
+
+    console.log("Socket auth token refreshed:", !!this.authToken);
   }
 }
