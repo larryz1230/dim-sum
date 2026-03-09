@@ -46,6 +46,7 @@ export type SocketHandlers = Partial<{
 
 export default class SocketSingleton {
   private static socket: TypedSocket | null = null;
+  private static authToken: string | null = null;
 
   private static playerNumber: 1 | 2 | null = null;
 
@@ -66,6 +67,9 @@ export default class SocketSingleton {
       this.socket = io(SOCKET_URL, {
         autoConnect: false,
         transports: ["websocket"],
+        auth: {
+          token: this.authToken,
+        },
       });
 
       this.socket.on(SOCKET_EVENTS.MATCH_FOUND, (p) => {
@@ -82,7 +86,14 @@ export default class SocketSingleton {
 
   static ensureConnected() {
     const s = this.getSocket();
-    if (!s.connected) s.connect();
+
+    s.auth = {
+      token: this.authToken,
+    };
+
+    if (!s.connected) {
+      s.connect();
+    }
   }
 
   static subscribe(handlers: SocketHandlers) {
@@ -111,5 +122,13 @@ export default class SocketSingleton {
     on(SOCKET_EVENTS.ROOM_COUNT, handlers[SOCKET_EVENTS.ROOM_COUNT]);
 
     return () => ons.forEach((off) => off());
+  }
+
+  static setAuthToken(token: string | null) {
+    this.authToken = token;
+
+    if (this.socket) {
+      this.socket.auth = { token };
+    }
   }
 }

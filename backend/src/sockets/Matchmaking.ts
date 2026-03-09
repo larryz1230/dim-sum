@@ -30,19 +30,24 @@ function getWaitingOpponent(io: Server) : Socket | undefined {
 function createMatch(io: Server, player1Socket: Socket, player2Socket: Socket) : string {
     const matchId = randomUUID();
 
-    // TODO: get rid of the placeholder user ids
+    const player1UserId = player1Socket.data.userId;
+    const player2UserId = player2Socket.data.userId;
 
-    // todo username logic
+    if (!player1UserId  || !player2UserId) {
+        throw new Error("Missing authenticated userId on socket");
+    }
+
     const initialState = createInitialGameState(matchId, {
         [player1Socket.id]: {
             playerNumber: 1,
-            userId: '1d89f440-e820-4772-a798-36e6b514228d',
+            userId: player1UserId,
         },
         [player2Socket.id]: {
             playerNumber: 2,
-            userId: 'a2070da8-f721-45b5-ab75-01f3d3362983',
+            userId: player2UserId,
         },
     });
+    
     games.set(matchId, initialState);
     player1Socket.join(matchId);
     player2Socket.join(matchId);
