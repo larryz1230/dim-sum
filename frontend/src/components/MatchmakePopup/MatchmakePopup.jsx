@@ -40,16 +40,25 @@ export default function MatchmakePopup({ onClose }) {
 
     return () => {
       try {
-        s.emit(SOCKET_EVENTS.MATCH_CANCEL);
+        if (s.connected) {
+          s.emit(SOCKET_EVENTS.MATCH_CANCEL);
+        }
       } catch (_) {}
       unsubscribe();
       socketRef.current = null;
     };
   }, [navigate]);
 
-  const startMatchmaking = () => {
-    SocketSingleton.ensureConnected();
-    SocketSingleton.getSocket().emit(SOCKET_EVENTS.MATCH_START);
+  const startMatchmaking = async () => {
+    try {
+      await SocketSingleton.ensureConnected();
+      SocketSingleton.getSocket().emit(SOCKET_EVENTS.MATCH_START);
+    } catch (err) {
+      setErrorMsg(
+        err instanceof Error ? err.message : "Failed to connect to matchmaking."
+      );
+      setStatus("error");
+    }
   };
 
   const cancelMatchmaking = () => {

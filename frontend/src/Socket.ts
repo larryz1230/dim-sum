@@ -1,8 +1,10 @@
 import { io, type Socket } from "socket.io-client";
 import { SOCKET_EVENTS } from "../../shared/SocketEvents";
 import { MatchFoundPayload } from "../../shared/SocketTypes";
+import { supabase } from "./services/supabaseClient";
 
-const SOCKET_URL = 'https://cs130-group4.onrender.com';
+//const SOCKET_URL = 'https://cs130-group4.onrender.com';
+const SOCKET_URL = 'http://localhost:9090';
 
 // (optional) type your server->client events here
 type ServerToClientEvents = {
@@ -46,6 +48,7 @@ export type SocketHandlers = Partial<{
 
 export default class SocketSingleton {
   private static socket: TypedSocket | null = null;
+  private static authToken: string | null = null;
 
   private static playerNumber: 1 | 2 | null = null;
 
@@ -66,6 +69,9 @@ export default class SocketSingleton {
       this.socket = io(SOCKET_URL, {
         autoConnect: false,
         transports: ["websocket"],
+        auth: {
+          token: this.authToken,
+        },
       });
 
       this.socket.on(SOCKET_EVENTS.MATCH_FOUND, (p) => {
@@ -80,9 +86,20 @@ export default class SocketSingleton {
     return this.socket;
   }
 
-  static ensureConnected() {
+  static async ensureConnected() {
+    await this.refreshAuthTokenFromSession();
+
     const s = this.getSocket();
-    if (!s.connected) s.connect();
+
+    s.auth = {
+      token: this.authToken,
+    };
+
+    console.log("Connecting socket with auth: ", s.auth);
+
+    if (!s.connected) {
+      s.connect();
+    }
   }
 
   static subscribe(handlers: SocketHandlers) {
@@ -111,5 +128,31 @@ export default class SocketSingleton {
     on(SOCKET_EVENTS.ROOM_COUNT, handlers[SOCKET_EVENTS.ROOM_COUNT]);
 
     return () => ons.forEach((off) => off());
+  }
+
+  static setAuthToken(token: string | null) {
+    this.authToken = token;
+
+    if (this.socket) {
+      this.socket.auth = { token };
+    }
+  }
+
+  static async refreshAuthTokenFromSession() : Promise<void> {
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error("Failed to get Supabase session: ", error);
+      this.authToken = null;
+      return;
+    }
+
+    this.authToken = data.session?.access_token ?? null;
+
+    if (this.socket) {
+      this.socket.auth = {token: this.authToken};
+    }
+
+    console.log("Socket auth token refreshed:", !!this.authToken);
   }
 }

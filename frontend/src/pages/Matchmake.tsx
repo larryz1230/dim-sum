@@ -75,8 +75,8 @@ export default function Matchmake() {
     };
   }, []);
 
-  const startMatchmaking = () => {
-    SocketSingleton.ensureConnected();
+  const startMatchmaking = async () => {
+    await SocketSingleton.ensureConnected();
     SocketSingleton.getSocket().emit(SOCKET_EVENTS.MATCH_START);
   };
 
