@@ -59,6 +59,7 @@ export default function App(): React.ReactElement {
   const [gameMode, setGameMode] = useState<GameMode>("singleplayer");
   const [boardWidth, setBoardWidth] = useState<number | null>(null);
   const [gameKey, setGameKey] = useState(0);
+  const [timer, setTimer] = useState(120);
 
   const boardContainerRef = useRef<HTMLDivElement>(null);
 
@@ -91,6 +92,7 @@ export default function App(): React.ReactElement {
     setShowGameOver(false);
     setGameResult(null);
     setScore(0);
+    setTimer(120);
     setCells(createSampleBoard(13, 17));
     setSelectedCellIds(new Set());
     setGameKey((prev) => prev + 1);
@@ -135,6 +137,8 @@ export default function App(): React.ReactElement {
             <Timer
               key={gameKey}
               boardWidth={boardWidth}
+              time={timer}
+              setTime={setTimer}
               onTimeUp={handleTimeUp}
               isPaused={showSettings || showLogin}
             />
