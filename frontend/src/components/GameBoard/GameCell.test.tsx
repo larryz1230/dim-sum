@@ -3,7 +3,7 @@ import "@testing-library/jest-dom";
 import { describe, it, expect } from "vitest";
 import { GameCell } from "./GameCell.jsx";
 
-// GameCell
+// Tests
 describe("GameCell.empty", () => {
     it("renders an empty cell when value is 0", () => {
         const emptyCell = { value: 0 };
@@ -12,7 +12,7 @@ describe("GameCell.empty", () => {
 
         expect(cell).toHaveClass("game-cell");
         expect(cell).toHaveClass("game-cell--empty");
-    })
+    });
 });
 
 describe("GameCell.nonempty", () => {
@@ -24,5 +24,5 @@ describe("GameCell.nonempty", () => {
         expect(cell!).not.toHaveClass("game-cell--empty");
         expect(cell!.firstChild).toHaveClass("game-cell__value");
         expect(screen.getByText("5")).toBeInTheDocument();
-    })
+    });
 });

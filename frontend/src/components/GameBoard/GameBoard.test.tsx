@@ -84,7 +84,8 @@ describe("GameBoard.disabled", () => {
     it("applies disabled class when disabled", () => {
         const { container } = render(
             <GameBoard 
-                cells={createBoard()} disabled
+                cells={createBoard()}
+                disabled
                 selectedCellIds={new Set()}
                 onCellClick={() => {}}
                 onSelectionChange={() => {}}
@@ -116,7 +117,7 @@ describe("GameBoard.selection", () => {
         const box = container.querySelector(".game-board__selection-box");
 
         expect(box).toBeInTheDocument();
-    })
+    });
 });
 
 describe("GameBoard.clear", () => {
@@ -141,42 +142,38 @@ describe("GameBoard.clear", () => {
         fireEvent.mouseUp(document, { button: 0 });
 
         expect(onCellsUpdate).toHaveBeenCalled();
-        });
+    });
 });
 
 describe("GameBoard.multiplayer", () => {
     it("emits socket update in multiplayer", () => {
-    const emit = vi.fn();
+        const emit = vi.fn();
 
-    const socketRef = {
-        current: { emit, id: "player1" }
-    } as any;
+        const socketRef = { current: { emit, id: "player1" }} as any;
 
-    const { container } = render(
-        <GameBoard
-        cells={createBoard()}
-        selectedCellIds={new Set()}
-        onCellClick={() => {}}
-        onSelectionChange={() => {}}
-        onCellsUpdate={() => {}}
-        targetSum={10}
-        socketRef={socketRef}
-        matchId={"room1" as any}
-        />
-    );
+        const { container } = render(
+            <GameBoard
+            cells={createBoard()}
+            selectedCellIds={new Set()}
+            onCellClick={() => {}}
+            onSelectionChange={() => {}}
+            onCellsUpdate={() => {}}
+            targetSum={10}
+            socketRef={socketRef}
+            matchId={"room1" as any}
+            />
+        );
 
-    const board = container.querySelector(".game-board");
+        const board = container.querySelector(".game-board");
 
-    fireEvent.mouseDown(board!, { clientX: 10, clientY: 10, button: 0 });
-    fireEvent.mouseMove(document, { clientX: 100, clientY: 100, buttons: 1 });
-    fireEvent.mouseUp(document, { button: 0 });
+        fireEvent.mouseDown(board!, { clientX: 10, clientY: 10, button: 0 });
+        fireEvent.mouseMove(document, { clientX: 100, clientY: 100, buttons: 1 });
+        fireEvent.mouseUp(document, { button: 0 });
 
-    expect(emit).toHaveBeenCalledWith(
-        "game:update",
-        expect.objectContaining({
-        roomId: "room1"
-        })
-    )
+        expect(emit).toHaveBeenCalledWith(
+            "game:update",
+            expect.objectContaining({roomId: "room1"})
+        );
     });
 });
 
