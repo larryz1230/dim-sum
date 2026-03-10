@@ -2,9 +2,11 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabaseClient';
 
+const CACHE_DEADLINE = 5 * 60 * 1000;
+const INACTIVITY_TIMEOUT = 15 * 60 * 1000;
+
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
   rating: number | null;
   username: string | null;
@@ -13,13 +15,13 @@ interface AuthContextType {
   wins: number | null;
   losses: number | null;
   ties: number | null;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState<number | null>(null);
   const [username, setUsername] = useState<string | null>(null);
@@ -28,8 +30,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [wins, setWins] = useState<number | null>(null);
   const [losses, setLosses] = useState<number | null>(null);
   const [ties, setTies] = useState<number | null>(null);
+  const [lastFetched, setLastFetched] = useState<number | null>(null);
 
-  const fetchProfileData = async (userId: string) => {
+  const fetchProfileData = async (userId: string, force = false) => {
+    const now = Date.now();
+    if (!force && lastFetched && (now - lastFetched < CACHE_DEADLINE)) return;
+
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -37,50 +43,59 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
-      
-      setRating(data.rating);
-      setUsername(data.username);
-      setMatchesPlayed(data.matches_played ?? null);
-      setWins(data.wins ?? null);
-      setLosses(data.losses ?? null);
-      setTies(data.ties ?? null);
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      setRating(null);
-      setUsername(null);
-      setMatchesPlayed(null);
-      setWins(null);
-      setLosses(null);
-      setTies(null);
-    }
+      if (!error && data) {
+        setRating(data.rating);
+        setUsername(data.username);
+        setMatchesPlayed(data.matches_played ?? 0);
+        setWins(data.wins ?? 0);
+        setLosses(data.losses ?? 0);
+        setTies(data.ties ?? 0);
+        setLastFetched(now);
+      }
+    } catch (err) {}
   };
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('[useAuth] initializeAuth: session=', !!session, 'user=', !!session?.user);
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      setEmail(session?.user?.email ?? null);
+    let timeoutId: NodeJS.Timeout;
 
-      if (session?.user) {
-        await fetchProfileData(session.user.id);
-      }
-      setLoading(false);
+    const handleLogout = async () => {
+      await supabase.auth.signOut();
     };
 
-    initializeAuth();
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(handleLogout, INACTIVITY_TIMEOUT);
+    };
+
+    if (user) {
+      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+      events.forEach(event => window.addEventListener(event, resetTimer));
+      resetTimer();
+
+      return () => {
+        events.forEach(event => window.removeEventListener(event, resetTimer));
+        if (timeoutId) clearTimeout(timeoutId);
+      };
+    }
+  }, [user]);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setUser(session.user);
+        setEmail(session.user.email ?? null);
+        fetchProfileData(session.user.id);
+      }
+      setLoading(false);
+    });
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('[useAuth] onAuthStateChange:', event, 'session=', !!session, 'user=', !!session?.user);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setEmail(session?.user?.email ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      setEmail(currentUser?.email ?? null);
 
-      if (session?.user) {
-        await fetchProfileData(session.user.id);
+      if (currentUser) {
+        fetchProfileData(currentUser.id, true);
       } else {
         setRating(null);
         setUsername(null);
@@ -88,16 +103,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setWins(null);
         setLosses(null);
         setTies(null);
+        setLastFetched(null);
       }
+      setLoading(false);
     });
 
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
+    return () => authListener?.subscription.unsubscribe();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, rating, username, email, matchesPlayed, wins, losses, ties }}>
+    <AuthContext.Provider value={{
+      user, loading, rating, username, email, matchesPlayed, wins, losses, ties,
+      refreshProfile: () => fetchProfileData(user?.id || '', true)
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -105,8 +123,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };
