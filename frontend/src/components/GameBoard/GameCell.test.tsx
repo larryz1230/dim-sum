@@ -21,11 +21,8 @@ describe("GameCell.nonempty", () => {
         const { container } = render(<GameCell cell={emptyCell} isSelected={false}/>);
         const cell = container.firstChild;
 
-        expect(cell).not.toHaveClass("game-cell--empty");
-        expect(cell).not.toBeNull();
-        if (cell) {
-            expect(cell.firstChild).toHaveClass("game-cell__value");
-        }
+        expect(cell!).not.toHaveClass("game-cell--empty");
+        expect(cell!.firstChild).toHaveClass("game-cell__value");
         expect(screen.getByText("5")).toBeInTheDocument();
     })
 });
