@@ -143,7 +143,7 @@ export const GameBoard = ({
     const overlapArea = overlapWidth * overlapHeight;
     const cellArea = cellBounds.width * cellBounds.height;
     if (cellArea <= 0) return false;
-    return overlapArea / cellArea >= 0.65;
+    return overlapArea / cellArea >= 0.5;
   }, [getCellBoundsInGrid]);
 
   // Calculate cells in box selection from positions (80% coverage rule)
