@@ -7,31 +7,38 @@ import './Login.css'
 const Login: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
-  const { user } = useAuth();
+  
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    console.log('[Login] useEffect: user=', user ? 'logged in' : 'null', 'redirecting to /dashboard?', !!user);
-    if (user) {
-      navigate('/dashboard');
+    if (!authLoading && user) {
+      console.log('[Login] Session detected, redirecting to dashboard...');
+      navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate])
+  }, [user, authLoading, navigate]);
 
   const onLoginSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
-    setLoading(true)
+    setIsSubmitting(true)
     setError(null)
 
-    const { data, error: loginError } = await handleLogin(email, password)
+    try {
+      const { error: loginError } = await handleLogin(email, password)
 
-    if (loginError) {
-      setError(loginError instanceof Error ? loginError.message : 'Login failed')
-      setLoading(false)
-    } else if (data) {
-      navigate('/dashboard')
+      if (loginError) {
+        setError(loginError instanceof Error ? loginError.message : 'Login failed')
+        setIsSubmitting(false)
+      } 
+    } catch (err) {
+      setError('Unexpected error occurred')
+      setIsSubmitting(false)
     }
+  }
+  if (authLoading) {
+    return <div className="auth-wrapper">Loading session...</div>;
   }
 
   return (
@@ -51,6 +58,7 @@ const Login: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isSubmitting}
             />
           </div>
 
@@ -62,11 +70,12 @@ const Login: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={isSubmitting}
             />
           </div>
 
-          <button className="primary-btn" type="submit" disabled={loading}>
-            {loading ? 'Verifying...' : 'Login'}
+          <button className="primary-btn" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Verifying...' : 'Login'}
           </button>
         </form>
 
