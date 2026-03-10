@@ -1,3 +1,9 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #E7BC9B;
+}
+
 .app {
   min-height: 100vh;
   background-color: #E7BC9B;
@@ -46,6 +52,7 @@
   gap: 30px;
   align-items: flex-start;
   justify-content: center;
+  padding-top: 48px;
 }
 
 .app__game-container {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { handleLogin } from '../services/api'
 import { useAuth } from '../hooks/useAuth';
+import './Login.css'
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -12,6 +13,7 @@ const Login: React.FC = () => {
   const { user } = useAuth();
 
   useEffect(() => {
+    console.log('[Login] useEffect: user=', user ? 'logged in' : 'null', 'redirecting to /dashboard?', !!user);
     if (user) {
       navigate('/dashboard');
     }

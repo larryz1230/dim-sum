@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #E7BC9B;
+  padding: 20px;
+}
+
+.auth-card {
+  background-color: #8C3322;
+  border: 6px solid #482E1D;
+  border-radius: 16px;
+  padding: 32px 48px;
+  min-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.auth-card h2 {
+  font-family: 'Nunito', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 8px 0;
+  text-align: center;
+}
+
+.auth-subtitle {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  color: #E7BC9B;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+.auth-card .error-banner {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  color: #ffcccc;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 20px;
+}
+
+.auth-card .input-group {
+  margin-bottom: 20px;
+}
+
+.auth-card .input-group label {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.auth-card .input-group input {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #482E1D;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.95);
+  box-sizing: border-box;
+}
+
+.auth-card .input-group input:focus {
+  outline: none;
+  border-color: #E7BC9B;
+}
+
+.auth-card .primary-btn {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  width: 100%;
+  padding: 14px;
+  background-color: #E7BC9B;
+  color: #8C3322;
+  border: 2px solid #482E1D;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background-color 0.2s;
+}
+
+.auth-card .primary-btn:hover:not(:disabled) {
+  background-color: #F0C9A8;
+}
+
+.auth-card .primary-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.auth-footer {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.95rem;
+  color: #E7BC9B;
+  margin: 20px 0 0 0;
+  text-align: center;
+}
+
+.auth-footer a {
+  color: white;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.auth-footer a:hover {
+  color: #F0C9A8;
+}

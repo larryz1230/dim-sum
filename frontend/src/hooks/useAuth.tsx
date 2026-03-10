@@ -9,6 +9,10 @@ interface AuthContextType {
   rating: number | null;
   username: string | null;
   email: string | null;
+  matchesPlayed: number | null;
+  wins: number | null;
+  losses: number | null;
+  ties: number | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,12 +24,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [rating, setRating] = useState<number | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [matchesPlayed, setMatchesPlayed] = useState<number | null>(null);
+  const [wins, setWins] = useState<number | null>(null);
+  const [losses, setLosses] = useState<number | null>(null);
+  const [ties, setTies] = useState<number | null>(null);
 
   const fetchProfileData = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('rating, username')
+        .select('rating, username, matches_played, wins, losses, ties')
         .eq('id', userId)
         .single();
 
@@ -33,16 +41,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       setRating(data.rating);
       setUsername(data.username);
+      setMatchesPlayed(data.matches_played ?? null);
+      setWins(data.wins ?? null);
+      setLosses(data.losses ?? null);
+      setTies(data.ties ?? null);
     } catch (err) {
       console.error('Error fetching profile:', err);
       setRating(null);
       setUsername(null);
+      setMatchesPlayed(null);
+      setWins(null);
+      setLosses(null);
+      setTies(null);
     }
   };
 
   useEffect(() => {
     const initializeAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('[useAuth] initializeAuth: session=', !!session, 'user=', !!session?.user);
       
       setSession(session);
       setUser(session?.user ?? null);
@@ -56,7 +73,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     initializeAuth();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[useAuth] onAuthStateChange:', event, 'session=', !!session, 'user=', !!session?.user);
       setSession(session);
       setUser(session?.user ?? null);
       setEmail(session?.user?.email ?? null);
@@ -66,6 +84,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         setRating(null);
         setUsername(null);
+        setMatchesPlayed(null);
+        setWins(null);
+        setLosses(null);
+        setTies(null);
       }
     });
 
@@ -75,7 +97,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, rating, username, email }}>
+    <AuthContext.Provider value={{ user, session, loading, rating, username, email, matchesPlayed, wins, losses, ties }}>
       {children}
     </AuthContext.Provider>
   );

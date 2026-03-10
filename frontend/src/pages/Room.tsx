@@ -13,8 +13,8 @@ import { Leaderboard } from "../components/Leaderboard";
 import { MatchPlayersInfo } from "../components/MatchPlayersInfo/MatchPlayersInfo";
 import type { Cell, Board, GameStateEmit } from "../../../backend/src/models/GameTypes";
 import { SOCKET_EVENTS } from "../../../shared/SocketEvents";
+import BackToDashboard from "../components/BackToDashboard/BackToDashboard";
 
-// TODO: fix this linting issue, it shows up but gives an error.
 import settingsIcon from "../imgs/Settings.png";
 import "../App.css";
 
@@ -252,6 +252,8 @@ export default function Room() {
           <Leaderboard gameMode={gameMode} />
         </div>
         </div>
+
+      <BackToDashboard />
 
       <button
         className="app__settings-button"

@@ -1,8 +1,18 @@
 import React, { useState } from 'react';
 import './Settings.css';
 
-export const Settings = ({ onClose, onLoginClick, gameMode, onGameModeChange }) => {
+export const Settings = ({ onClose, onLoginClick, onProfileClick, onLeaderboardClick, gameMode, onGameModeChange }) => {
   const [isMultiplayer, setIsMultiplayer] = useState(gameMode === 'multiplayer');
+
+  const handleProfileClick = () => {
+    onClose?.();
+    onProfileClick?.();
+  };
+
+  const handleLeaderboardClick = () => {
+    onClose?.();
+    onLeaderboardClick?.();
+  };
 
   return (
     <>
@@ -11,8 +21,8 @@ export const Settings = ({ onClose, onLoginClick, gameMode, onGameModeChange }) 
         <h1 className="settings-title">SETTINGS</h1>
         <div className="settings-content">
           <div className="settings-column">
-            <button className="settings-button">placeholder</button>
-            <button className="settings-button">placeholder</button>
+            <button className="settings-button" onClick={handleProfileClick}>Profile</button>
+            <button className="settings-button" onClick={handleLeaderboardClick}>Leaderboard</button>
             <button className="settings-button" onClick={onLoginClick}>login</button>
             <button className="settings-button">placeholder</button>
           </div>

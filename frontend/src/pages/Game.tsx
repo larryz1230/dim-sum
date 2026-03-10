@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { GameBoard } from "../components/GameBoard";
 import { Settings } from "../components/Settings";
 import { Login } from "../components/Login";
@@ -6,8 +7,8 @@ import { Timer } from "../components/Timer";
 import { GameOver } from "../components/GameOver";
 import { Score } from "../components/Score";
 import { Leaderboard } from "../components/Leaderboard";
+import BackToDashboard from "../components/BackToDashboard/BackToDashboard";
 
-// WHY ISN:
 import settingsIcon from "../imgs/Settings.png";
 
 import "../App.css";
@@ -45,6 +46,7 @@ const createSampleBoard = (rows = 12, cols = 10): Board => {
 };
 
 export default function App(): React.ReactElement {
+  const navigate = useNavigate();
   const [cells, setCells] = useState<Board>(() => createSampleBoard(13, 17));
   const [selectedCellIds, setSelectedCellIds] = useState<Set<string>>(
     () => new Set(),
@@ -149,6 +151,8 @@ export default function App(): React.ReactElement {
         </div>
       </div>
 
+      <BackToDashboard />
+
       <button
         className="app__settings-button"
         onClick={() => setShowSettings(true)}
@@ -163,6 +167,8 @@ export default function App(): React.ReactElement {
             setShowSettings(false);
             setShowLogin(true);
           }}
+          onProfileClick={() => navigate('/dashboard')}
+          onLeaderboardClick={() => navigate('/dashboard', { state: { panel: 'leaderboard' } })}
           gameMode={gameMode}
           onGameModeChange={setGameMode}
         />
