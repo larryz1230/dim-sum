@@ -3,6 +3,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { handleSignOut } from '../../../services/api';
 import { useNavigate } from 'react-router-dom';
 import goldBunImg from '../../../imgs/Gold Bun.png';
+import happyBunGif from '../../../imgs/Happy Bun.gif';
 import './ProfileExpanded.css';
 
 export default function ProfileExpanded() {
@@ -38,26 +39,13 @@ export default function ProfileExpanded() {
             <p className="profile-expanded__stat">Ties: {ties ?? 0}</p>
           </div>
         </div>
-        {/* Editable bio - commented out for now
         <div className="profile-expanded__bio-section">
-          {isEditingBio ? (
-            <textarea
-              className="profile-expanded__bio-input"
-              value={bio}
-              onChange={handleBioChange}
-              onBlur={handleBioBlur}
-              autoFocus
-            />
-          ) : (
-            <p
-              className="profile-expanded__bio"
-              onDoubleClick={handleBioDoubleClick}
-            >
-              {bio}
-            </p>
-          )}
+          <img
+            src={happyBunGif}
+            alt=""
+            className="profile-expanded__animated-bun"
+          />
         </div>
-        */}
         <button className="profile-expanded__signout" onClick={onSignOut}>
           Sign Out
         </button>

@@ -10,7 +10,7 @@ import { Login } from '../Login/Login';
 import bunsChopstickImg from '../../imgs/BunsChopstick.png';
 import fightingBunsImg from '../../imgs/FightingBuns.png';
 import goldBunImg from '../../imgs/Gold Bun.png';
-import individualBaoImg from '../../imgs/individual bao 2.png';
+import happyBunImg from '../../imgs/Happy Bun.png';
 import settingsIcon from '../../imgs/Settings.png';
 import arrowImg from '../../imgs/Arrow.png';
 import homeImg from '../../imgs/Home.png';
@@ -60,7 +60,7 @@ export default function Dashboard() {
             </button>
             <button className="dashboard__button" onClick={() => setActivePanel('profile')}>
               <span className="dashboard__button-img-wrap">
-                <img src={individualBaoImg} alt="" />
+                <img src={happyBunImg} alt="" />
               </span>
               Profile
             </button>
