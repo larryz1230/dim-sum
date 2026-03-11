@@ -62,6 +62,17 @@ export default function App(): React.ReactElement {
   const [timer, setTimer] = useState(120);
 
   const boardContainerRef = useRef<HTMLDivElement>(null);
+  const [gameContainerHeight, setGameContainerHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = boardContainerRef.current;
+    if (!el) return;
+    const update = () => setGameContainerHeight(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [cells]);
 
   const handleSelectionChange = (newSelection: Set<string>) => {
     setSelectedCellIds(newSelection);
@@ -145,9 +156,18 @@ export default function App(): React.ReactElement {
           )}
         </div>
 
-        <div className="app__sidebar">
+        <div
+          className="app__sidebar"
+          style={
+            gameContainerHeight != null
+              ? { maxHeight: gameContainerHeight }
+              : undefined
+          }
+        >
           <Score score={score} gameMode={gameMode} />
-          <Leaderboard gameMode={gameMode} />
+          <div className="leaderboard-wrapper">
+            <Leaderboard gameMode={gameMode} />
+          </div>
         </div>
       </div>
 
