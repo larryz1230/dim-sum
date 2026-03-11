@@ -6,6 +6,7 @@ import { Timer } from "./Timer.jsx";
 const SECOND = 1000;
 const BOARD_WIDTH = 200;
 
+// Restore timers after time runs out
 afterEach(() => {
     vi.useRealTimers();
 });

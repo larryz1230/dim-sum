@@ -25,12 +25,11 @@ const createBoard = () => [
 ];
 
 beforeEach(() => {
-  // Create a smarter mock for getBoundingClientRect that returns different values
-  // based on what element is being measured
+  // Store rects per element
   const mockRects: Map<HTMLElement, DOMRect> = new Map();
   
   HTMLElement.prototype.getBoundingClientRect = vi.fn(function(this: HTMLElement) {
-    // Cache rects per element to ensure consistency
+    // Create rectangle for element if it doesnt exist
     if (!mockRects.has(this)) {
       const isBoard = this.className?.includes('game-board') && !this.className?.includes('__');
       const isGrid = this.className?.includes('game-board__grid');
