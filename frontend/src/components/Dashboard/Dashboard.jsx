@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useSound } from '../../hooks/useSound';
+import { getBgMusic, stopBgMusic } from '../../utils/sound';
 import '../../App.css';
 import './Dashboard.css';
 import ProfileExpanded from './ProfileExpanded/ProfileExpanded';
@@ -18,6 +20,7 @@ import homeImg from '../../imgs/Home.png';
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { soundOn } = useSound();
   const [showMatchmakePopup, setShowMatchmakePopup] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
@@ -37,6 +40,15 @@ export default function Dashboard() {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, []);
+
+  useEffect(() => {
+    if (soundOn) {
+      getBgMusic().play().catch(() => {});
+    } else {
+      stopBgMusic();
+    }
+    return () => stopBgMusic();
+  }, [soundOn]);
 
   return (
     <div className="app dashboard-page">

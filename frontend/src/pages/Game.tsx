@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSound } from "../hooks/useSound";
+import { playBunSound } from "../utils/sound";
 import { GameBoard } from "../components/GameBoard";
 import { Settings } from "../components/Settings";
 import { Login } from "../components/Login";
@@ -47,6 +49,7 @@ const createSampleBoard = (rows = 12, cols = 10): Board => {
 
 export default function App(): React.ReactElement {
   const navigate = useNavigate();
+  const { soundOn } = useSound();
   const [cells, setCells] = useState<Board>(() => createSampleBoard(13, 17));
   const [selectedCellIds, setSelectedCellIds] = useState<Set<string>>(
     () => new Set(),
@@ -90,7 +93,10 @@ export default function App(): React.ReactElement {
       }
     }
 
-    if (clearedCount > 0) setScore((prev) => prev + clearedCount);
+    if (clearedCount > 0) {
+      if (soundOn) playBunSound();
+      setScore((prev) => prev + clearedCount);
+    }
     setCells(updatedCells);
   };
 
@@ -133,7 +139,11 @@ export default function App(): React.ReactElement {
     <div className="app">
       <div className="app__main-content">
         <div className="app__game-container" ref={boardContainerRef}>
-          <GameBoard
+          <div className="app__game-board-wrap">
+            {(showSettings || showLogin) && (
+              <div className="app__game-board-overlay" aria-hidden />
+            )}
+            <GameBoard
             cells={cells}
             selectedCellIds={selectedCellIds}
             onSelectionChange={handleSelectionChange}
@@ -142,9 +152,10 @@ export default function App(): React.ReactElement {
             isSinglePlayer={true}
             disabled={showSettings || showLogin}
             targetSum={10}
-          />
+            />
+          </div>
 
-          {boardWidth !== null && !showGameOver && (
+          {boardWidth !== null && (
             <Timer
               key={gameKey}
               boardWidth={boardWidth}

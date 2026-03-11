@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useSound } from "../hooks/useSound";
+import { playBunSound } from "../utils/sound";
 import { connect, type Socket } from "socket.io-client";
 import SocketSingleton from "../Socket";
 
@@ -19,6 +21,7 @@ import settingsIcon from "../imgs/Settings.png";
 import "../App.css";
 
 export default function Room() {
+  const { soundOn } = useSound();
   type GameMode = "singleplayer" | "multiplayer";
   type GameResult = "win" | "lose" | null;
 
@@ -163,6 +166,8 @@ export default function Room() {
     const s = socketRef.current;
     if (!s || !matchId) return;
 
+    if (soundOn) playBunSound();
+
     const clearedCells = cellIds.map((id) => {
       const [, row, col] = id.split("-");
       return { row: Number(row), col: Number(col) };
@@ -231,12 +236,13 @@ export default function Room() {
             targetSum={10}
           />
 
-          {boardWidth !== null && !showGameOver && (
+          {boardWidth !== null && (
             <Timer
               boardWidth={boardWidth}
               time={timer}
               setTime={setTimer}
-              isPaused={showSettings || showLogin}
+              initialTime={60}
+              isPaused={false}
               onTimeUp={handleTimeUp}
             />
           )}
