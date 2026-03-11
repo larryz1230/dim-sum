@@ -53,8 +53,9 @@ export const Leaderboard = ({ gameMode }) => {
         })}
       </div>
 
-      {/* Rest of top 10 */}
-      <div className="leaderboard-list">
+      {/* Rest of top 10 - scrollable */}
+      <div className="leaderboard-list-scroll">
+        <div className="leaderboard-list">
         {rest.map((entry) => (
           <div key={entry.id} className="leaderboard-entry">
             <span className="leaderboard-entry-rank">{entry.id}.</span>
@@ -62,6 +63,7 @@ export const Leaderboard = ({ gameMode }) => {
             <span className="leaderboard-entry-score">{entry.score}</span>
           </div>
         ))}
+        </div>
       </div>
     </div>
   );
