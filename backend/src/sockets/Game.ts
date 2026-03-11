@@ -3,8 +3,6 @@ import type { GameStateEmit, JoinPayload, GameUpdatePayload } from "../models/Ga
 import { applyMove } from "../models/GameLogic";
 import { SOCKET_EVENTS } from "../../../shared/SocketEvents";
 
-// currently a map of ALL matchIds and the state of their games
-// very confusing but matchId and roomId are synonymous?
 export const games = new Map<string, GameStateEmit>();
 
 export function registerGameHandlers(io: Server, socket: Socket) {
