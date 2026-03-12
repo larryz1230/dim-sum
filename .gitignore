@@ -3,7 +3,7 @@ backend/.env
 
 # ignore in both folders
 node_modules/
-
+coverage/
 
 dist/
 build/
