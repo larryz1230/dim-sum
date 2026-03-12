@@ -20,7 +20,7 @@
   border-radius: 6px;
   padding: 60px 40px;
   z-index: 1001;
-  min-width: 800px;
+  min-width: 340px;
 }
 
 .settings-title {
@@ -35,14 +35,15 @@
 
 .settings-content {
   display: flex;
-  gap: 40px;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
 }
 
-.settings-column {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  flex: 1;
+.settings-content .settings-button {
+  width: 100%;
+  max-width: 240px;
+  box-sizing: border-box;
 }
 
 .settings-button {
@@ -50,6 +51,7 @@
   font-size: 16px;
   font-weight: 600;
   padding: 12px 20px;
+  min-width: 200px;
   background-color: #E7BC9B;
   border: none;
   border-radius: 6px;
@@ -70,6 +72,8 @@
   border-radius: 6px;
   overflow: hidden;
   padding: 4px;
+  width: 100%;
+  max-width: 240px;
 }
 
 .settings-segment {
@@ -94,5 +98,55 @@
 
 .settings-segment:not(.settings-segment--active):hover {
   background-color: rgba(72, 46, 29, 0.1);
+}
+
+/* Rules popup */
+.settings-rules-overlay {
+  z-index: 1002;
+}
+
+.settings-rules-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #8C3322;
+  border: 6px solid #482E1D;
+  border-radius: 6px;
+  padding: 40px;
+  z-index: 1003;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.settings-rules-title {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  color: white;
+  text-align: center;
+  margin: 0 0 20px 0;
+}
+
+.settings-rules-content {
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  color: #E7BC9B;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.settings-rules-content p {
+  margin: 0 0 16px 0;
+}
+
+.settings-rules-content p:last-child {
+  margin-bottom: 0;
+}
+
+.settings-rules-close {
+  display: block;
+  margin: 0 auto;
 }
 

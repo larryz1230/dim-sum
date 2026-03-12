@@ -1,4 +1,5 @@
 import React from "react";
+import "./App.css";
 import {
   BrowserRouter as Router,
   Routes,
@@ -11,14 +12,18 @@ import Register from "./pages/Register";
 import Dashboard from "./components/Dashboard/Dashboard";
 import Matchmake from "./pages/Matchmake";
 import { AuthProvider } from "./hooks/useAuth";
+import { ThemeProvider } from "./hooks/useTheme";
+import { SoundProvider } from "./hooks/useSound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Game from "./pages/Game";
 import Room from "./pages/Room";
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <Router>
+    <ThemeProvider>
+      <SoundProvider>
+      <AuthProvider>
+        <Router>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route
@@ -35,8 +40,10 @@ const App: React.FC = () => {
             <Route path="/room/:matchId" element={<Room />} />
           </Route>
         </Routes>
-      </Router>
-    </AuthProvider>
+        </Router>
+      </AuthProvider>
+      </SoundProvider>
+    </ThemeProvider>
   );
 };
 
