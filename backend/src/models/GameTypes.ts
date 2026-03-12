@@ -43,3 +43,13 @@ export type GameUpdatePayload = {
     col: number
   }[];
 };
+
+export type QueueEntry = {
+    socketId: string;
+    userId: string;
+    username: string;
+    rating: number;
+    wins: number;
+    losses: number;
+    joinedAt: number;
+};
