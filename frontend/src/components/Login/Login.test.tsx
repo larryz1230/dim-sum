@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 import { Login } from "./Login";
 
 // Mock Images
@@ -53,17 +54,17 @@ describe("Login.render", () => {
 describe("Login.success", () => {
   it("successfully logs in with token, sets socket, and closes", async () => {
     mockHandleLogin.mockResolvedValueOnce({
-        data: { session: { access_token: 'fakeToken' } },
+        data: { session: { access_token: "fakeToken" } },
         error: null,
     });
 
     render(<Login onClose={onClose} />);
-    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'test@test.com' } });
-    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'pass123' } });
-    fireEvent.click(screen.getByText('Login'));
+    fireEvent.change(screen.getByPlaceholderText("Email"), { target: { value: "test@test.com" } });
+    fireEvent.change(screen.getByPlaceholderText("Password"), { target: { value: "pass123" } });
+    fireEvent.click(screen.getByText("Login"));
 
     await waitFor(() => {
-        expect(setAuthTokenMock).toHaveBeenCalledWith('fakeToken');
+        expect(setAuthTokenMock).toHaveBeenCalledWith("fakeToken");
         expect(onClose).toHaveBeenCalled();
     });
   });

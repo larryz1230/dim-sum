@@ -32,8 +32,8 @@ beforeEach(() => {
   HTMLElement.prototype.getBoundingClientRect = vi.fn(function(this: HTMLElement) {
     // Create rectangle for element if it doesnt exist
     if (!mockRects.has(this)) {
-      const isBoard = this.className?.includes('game-board') && !this.className?.includes('__');
-      const isGrid = this.className?.includes('game-board__grid');
+      const isBoard = this.className?.includes("game-board") && !this.className?.includes("__");
+      const isGrid = this.className?.includes("game-board__grid");
       
       if (isBoard || isGrid) {
         mockRects.set(this, new DOMRect(0, 0, 250, 150));
@@ -60,6 +60,7 @@ beforeEach(() => {
   });
 });
 
+// The state is loading when the cells are empty
 describe("MultiplayerGameBoard.empty", () => {
   it("renders a loading state when there are no cells", () => {
     render(
@@ -75,6 +76,7 @@ describe("MultiplayerGameBoard.empty", () => {
   });
 });
 
+// The game cells are rendered when their length is greater than 0
 describe("MultiplayerGameBoard.nonempty", () => {
   it("renders game cells when the board is nonempty", () => {
     render(
@@ -91,6 +93,7 @@ describe("MultiplayerGameBoard.nonempty", () => {
   });
 });
 
+// The disabled class is applied when the game board is disabled
 describe("MultiplayerGameBoard.disabled", () => {
   it("applies disabled class when disabled", () => {
     const { container } = render(
@@ -107,6 +110,7 @@ describe("MultiplayerGameBoard.disabled", () => {
   });
 });
 
+// The selection box is rendered when the player clicks down and drags the mouse
 describe("MultiplayerGameBoard.selection", () => {
   it("shows selection box when dragging", () => {
     const { container } = render(
@@ -128,6 +132,7 @@ describe("MultiplayerGameBoard.selection", () => {
   });
 });
 
+// The game board is updated when the sum within the selection box is equivalent to the target sum
 describe("MultiplayerGameBoard.clear", () => {
   it("clears cells when selected sum equals target sum", () => {
     const onSelectionEnd = vi.fn();
