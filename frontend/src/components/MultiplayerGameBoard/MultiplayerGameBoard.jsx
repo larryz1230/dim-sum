@@ -4,9 +4,10 @@
  * Based on Figma design: 12 rows x 10 columns grid
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameCell } from './GameCell.jsx';
 import './GameBoard.css';
+import { playBunSound } from '../../utils/sound.js';
 
 export const MultiplayerGameBoard = ({
   cells,
@@ -30,6 +31,12 @@ export const MultiplayerGameBoard = ({
   const boardRef = useRef(null);
   const startPosRef = useRef(null);
   const endPosRef = useRef(null);
+
+  // animation related
+  const [clearingCellIds, setClearingCellIds] = useState(new Set());
+  const [isResolvingSelection, setIsResolvingSelection] = useState(false);
+  const [pendingRemovalCellIds, setPendingRemovalCellIds] = useState(new Set());
+  const boardInteractionDisabled = disabled || isResolvingSelection;
   
   // Use external or internal state
   const selectedCellIds = externalSelectedCellIds ?? internalSelectedCellIds;
@@ -164,7 +171,7 @@ export const MultiplayerGameBoard = ({
   // We attach document listeners HERE immediately, not in useEffect. Otherwise a fast click
   // (mousedown then quick mouseup) can fire mouseup before useEffect runs, and we miss it.
   const handleMouseDown = useCallback((e) => {
-    if (disabled || e.button !== 0) return;
+    if (boardInteractionDisabled || e.button !== 0) return;
     const pos = getGridPosition(e);
     if (!pos) return;
 
@@ -197,7 +204,9 @@ export const MultiplayerGameBoard = ({
               }
             }
           }
-          if (sum === targetSum) onSelectionEnd?.(cellsInBox);
+          if (sum === targetSum) {
+            animateAndSubmit(cellsInBox);
+          }
         }
         if (onSelectionChange) onSelectionChange(new Set());
         else if (!isControlled) setInternalSelectedCellIds(new Set());
@@ -289,10 +298,98 @@ export const MultiplayerGameBoard = ({
     };
   };
 
+  // animation related
+  const sortCellIdsLeftToRight = (cellIds) => {
+    return [...cellIds].sort((a, b) => {
+      const [, rowA, colA] = a.split('-').map(Number);
+      const [, rowB, colB] = b.split('-').map(Number);
+
+      if (rowA !== rowB) {
+        return rowA - rowB;
+      }
+      return colA - colB;
+    });
+  };
+
+  const animateAndSubmit = useCallback((cellIds) => {
+    const ordered = sortCellIdsLeftToRight(cellIds);
+    const staggerMs = 70;
+    const animMs = 420;
+
+    setIsResolvingSelection(true);
+    setClearingCellIds(new Set());
+    setPendingRemovalCellIds((prev) => {
+      const next = new Set(prev);
+      ordered.forEach((id) => next.delete(id));
+      return next;
+    });
+
+    ordered.forEach((id, index) => {
+      window.setTimeout(() => {
+        setClearingCellIds((prev) => {
+          const next = new Set(prev);
+          next.add(id);
+          return next;
+        });
+
+        playBunSound();
+      }, index * staggerMs);
+    });
+
+    const totalMs = (ordered.length - 1) * staggerMs + animMs;
+
+    window.setTimeout(() => {
+      // Move from "animating" to "hidden while waiting for server"
+      setClearingCellIds((prev) => {
+        const next = new Set(prev);
+        ordered.forEach((id) => next.delete(id));
+        return next;
+      });
+
+      setPendingRemovalCellIds((prev) => {
+        const next = new Set(prev);
+        ordered.forEach((id) => next.add(id));
+        return next;
+      });
+
+      onSelectionEnd?.(ordered);
+      setIsResolvingSelection(false);
+    }, totalMs);
+  }, [onSelectionEnd]);
+
+  useEffect(() => {
+    setPendingRemovalCellIds((prev) => {
+      if (prev.size === 0) return prev;
+
+      const next = new Set(prev);
+
+      for (const id of prev) {
+        let foundCell = null;
+
+        for (const row of cells) {
+          for (const cell of row) {
+            if (cell.id === id) {
+              foundCell = cell;
+              break;
+            }
+          }
+          if (foundCell) break;
+        }
+
+        // If the cell is gone or has value 0, server has caught up
+        if (!foundCell || foundCell.value === 0) {
+          next.delete(id);
+        }
+      }
+
+      return next;
+    });
+  }, [cells]);
+
   return (
     <div 
       ref={boardRef}
-      className={`game-board ${disabled ? 'game-board--disabled' : ''}`}
+      className={`game-board ${boardInteractionDisabled ? 'game-board--disabled' : ''}`}
       onMouseDown={handleMouseDown}
       style={{ cursor: isDragging ? 'crosshair' : 'default', userSelect: 'none' }}
     >
@@ -306,8 +403,15 @@ export const MultiplayerGameBoard = ({
               <GameCell
                 key={cell.id}
                 cell={cell}
-                isSelected={isDragging && isCellInBox(cell)}
-                disabled={disabled}
+                isSelected={
+                  isDragging &&
+                  isCellInBox(cell) &&
+                  !clearingCellIds.has(cell.id) &&
+                  !pendingRemovalCellIds.has(cell.id)
+                }
+                isClearing={clearingCellIds.has(cell.id)}
+                isPendingRemoval={pendingRemovalCellIds.has(cell.id)}
+                disabled={boardInteractionDisabled}
               />
             ))}
           </div>
