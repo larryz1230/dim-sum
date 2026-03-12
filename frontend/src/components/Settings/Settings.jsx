@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { handleSignOut } from '../../services/api';
+import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
 import { useSound } from '../../hooks/useSound';
 import './Settings.css';
 
 export const Settings = ({ onClose }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { darkMode, setDarkMode } = useTheme();
   const { soundOn, setSoundOn } = useSound();
   const [showRules, setShowRules] = useState(false);
@@ -18,6 +20,11 @@ export const Settings = ({ onClose }) => {
     } finally {
       navigate('/login', { replace: true });
     }
+  };
+
+  const onLoginClick = () => {
+    onClose?.();
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -55,7 +62,9 @@ export const Settings = ({ onClose }) => {
             </button>
           </div>
           <button className="settings-button" onClick={() => setShowRules(true)}>Rules</button>
-          <button className="settings-button" onClick={onSignOut}>Sign Out</button>
+          <button className="settings-button" onClick={user ? onSignOut : onLoginClick}>
+            {user ? 'Sign Out' : 'Login'}
+          </button>
         </div>
       </div>
 
