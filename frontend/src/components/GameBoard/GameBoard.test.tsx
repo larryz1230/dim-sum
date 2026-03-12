@@ -34,9 +34,7 @@ beforeEach(() => {
       const isBoard = this.className?.includes('game-board') && !this.className?.includes('__');
       const isGrid = this.className?.includes('game-board__grid');
       
-      if (isBoard) {
-        mockRects.set(this, new DOMRect(0, 0, 250, 150));
-      } else if (isGrid) {
+      if (isBoard || isGrid) {
         mockRects.set(this, new DOMRect(0, 0, 250, 150));
       } else {
         mockRects.set(this, new DOMRect(0, 0, 100, 100));
