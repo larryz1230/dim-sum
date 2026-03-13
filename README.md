@@ -8,3 +8,6 @@ run vitest: npm run test, npx vitest <br>
 view vitest through browser ui: npm run test:ui <br>
 
 generate a coverage report in frontend/coverage: npm test -- --coverage, npx vitest run --coverage
+
+To test backend
+npm run test in backend directory
