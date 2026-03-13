@@ -1,25 +1,33 @@
-import React from 'react';
-import Logo from '../components/Logo/Logo.tsx'
-import { useNavigate } from 'react-router-dom';
-import '../App.css'
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import tinImg from '../imgs/TIN.png';
+import settingsIcon from '../imgs/Settings.png';
+import { Settings } from '../components/Settings/Settings';
+import '../App.css';
+import './Home.css';
 
-const Home: React.FC = () => {
-    const navigate = useNavigate();
+export default function Home() {
+  const [showSettings, setShowSettings] = useState(false);
 
-    return (
-        <div className='app'>
-            <div className='app__header'>
-                <div className='app__logo-wrapper'>
-                    <Logo />
-                </div>
-                <h1>Dumping Destroyer</h1>
-                <p>Math Made Fun and Competitive!</p>
-                <div className='app__controls'>
-                    <button onClick={() => navigate('/dashboard')}>Start Playing</button>
-                </div>
-            </div>
-        </div>
-    );
-};
+  return (
+    <div className="home">
+      <div className="home__content">
+        <h1 className="home__title">DIM SUM</h1>
+        <p className="home__description">a game to play with your friends! math made fun</p>
+        <Link to="/login" className="home__play-btn">Play Now!</Link>
+      </div>
+      <img src={tinImg} alt="" className="home__image" />
 
-export default Home;
+      <button
+        className="app__settings-button"
+        onClick={() => setShowSettings(true)}
+      >
+        <img src={settingsIcon} alt="Settings" />
+      </button>
+
+      {showSettings && (
+        <Settings onClose={() => setShowSettings(false)} />
+      )}
+    </div>
+  );
+}

@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import type { Socket } from "socket.io-client";
+import { useSound } from "../hooks/useSound";
+import { playBunSound } from "../utils/sound";
+import { connect, type Socket } from "socket.io-client";
 import SocketSingleton from "../Socket";
 
 import { MultiplayerGameBoard } from "../components/MultiplayerGameBoard";
@@ -10,32 +12,18 @@ import { Timer } from "../components/Timer";
 import { GameOver } from "../components/GameOver";
 import { Score } from "../components/Score";
 import { Leaderboard } from "../components/Leaderboard";
+import { MatchPlayersInfo } from "../components/MatchPlayersInfo/MatchPlayersInfo";
+import type { Cell, Board, GameStateEmit } from "../../../backend/src/models/GameTypes";
 import { SOCKET_EVENTS } from "../../../shared/SocketEvents";
+import BackToDashboard from "../components/BackToDashboard/BackToDashboard";
 
-// TODO: fix this linting issue, it shows up but gives an error.
 import settingsIcon from "../imgs/Settings.png";
 import "../App.css";
 
 export default function Room() {
+  const { soundOn } = useSound();
   type GameMode = "singleplayer" | "multiplayer";
   type GameResult = "win" | "lose" | null;
-
-  type Cell = {
-    id: string;
-    value: number; // 0 means cleared
-    row: number;
-    col: number;
-  };
-
-  type Board = Cell[][];
-  type GameStateEmit = {
-    roomId: string;
-    board: Board;
-    score1: number;
-    score2: number;
-    timer: number;
-    players: Record<string, 1 | 2>;
-  };
 
   const { matchId } = useParams<{ matchId: string }>();
 
@@ -61,6 +49,16 @@ export default function Room() {
   const [boardWidth, setBoardWidth] = useState<number | null>(null);
   const [gameKey, setGameKey] = useState(0);
 
+  // game info
+  const [myName, setMyName] = useState("");
+  const [opponentName, setOpponentName] = useState("");
+  const [myRating, setMyRating] = useState(0);
+  const [opponentRating, setOpponentRating] = useState(0);
+  const [myWins, setMyWins] = useState(0);
+  const [myLosses, setMyLosses] = useState(0);
+  const [opponentWins, setOpponentWins] = useState(0);
+  const [opponentLosses, setOpponentLosses] = useState(0);
+
   const boardContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -69,24 +67,54 @@ export default function Room() {
     const s = SocketSingleton.getSocket();
     socketRef.current = s;
 
+    let cancelled = false;
+    let joined = false;
+
+    const joinRoom = () => {
+      if (cancelled || joined) return;
+      joined = true;
+      s.emit(SOCKET_EVENTS.ROOM_JOIN, {roomId: matchId});
+      setConnected(true);
+    }
+
     const unsubscribe = SocketSingleton.subscribe({
       connect: () => {
-        s.emit(SOCKET_EVENTS.ROOM_JOIN, { roomId: matchId });
-        setConnected(true);
+        joinRoom();
       },
       disconnect: () => setConnected(false),
 
       [SOCKET_EVENTS.ROOM_GAME_STATE]: (gameState: GameStateEmit) => {
-        console.log("Received game state update:", gameState);
+        // console.log("Received game state update:", gameState);
         if (gameState.roomId !== matchId) return;
         setCells(gameState.board);
         setTimer(gameState.timer);
         // TODO: we need to set both players score and determine winner at end of game.
-        const pn = SocketSingleton.getPlayerNumber();
-        if (pn === 1) {
+        const playerList = Object.values(gameState.players);
+        const meNumber = SocketSingleton.getPlayerNumber();
+
+        if (!meNumber) return;
+
+        const me = playerList.find((p) => p.playerNumber === meNumber);
+        const opponent = playerList.find((p) => p.playerNumber !== meNumber);
+
+        if (me) {
+          setMyName(me.username);
+          setMyRating(me.rating);
+          setMyWins(me.wins);
+          setMyLosses(me.losses);
+        }
+
+        if (opponent) {
+          setOpponentName(opponent.username);
+          setOpponentRating(opponent.rating);
+          setOpponentWins(opponent.wins);
+          setOpponentLosses(opponent.losses);
+        }
+
+        if (meNumber === 1) {
           setScore1(gameState.score1);
           setScore2(gameState.score2);
-        } else if (pn === 2) {
+        } else {
           setScore1(gameState.score2);
           setScore2(gameState.score1);
         }
@@ -96,18 +124,32 @@ export default function Room() {
       [SOCKET_EVENTS.ROOM_COUNT]: (newCount) => setCount(newCount),
     });
 
-    SocketSingleton.ensureConnected();
+    const connectAndJoin = async () => {
+      try {
+        await SocketSingleton.ensureConnected();
 
-    // if already connected (hot reload), join immediately
-    if (s.connected) {
-      s.emit(SOCKET_EVENTS.ROOM_JOIN, { roomId: matchId });
-      setConnected(true);
-    }
+        if (cancelled) {
+          return;s
+        }
+
+        if (s.connected) {
+          joinRoom();
+        }
+      } catch (err) {
+        console.error("Failed to connect room socket: ", err);
+        setConnected(false);
+      }
+    };
+
+    connectAndJoin();
 
     return () => {
+      cancelled = true;
       // leave just this room, keep socket alive for other pages
       try {
-        s.emit(SOCKET_EVENTS.ROOM_LEAVE, { roomId: matchId });
+        if (s.connected) {
+          s.emit(SOCKET_EVENTS.ROOM_LEAVE, { roomId: matchId });
+        }
       } catch {}
       unsubscribe();
       socketRef.current = null;
@@ -123,6 +165,8 @@ export default function Room() {
   const submitSelection = (cellIds: string[]) => {
     const s = socketRef.current;
     if (!s || !matchId) return;
+
+    if (soundOn) playBunSound();
 
     const clearedCells = cellIds.map((id) => {
       const [, row, col] = id.split("-");
@@ -162,6 +206,17 @@ export default function Room() {
     };
   }, [cells]);
 
+  const [gameContainerHeight, setGameContainerHeight] = useState<number | null>(null);
+  useEffect(() => {
+    const el = boardContainerRef.current;
+    if (!el) return;
+    const update = () => setGameContainerHeight(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [cells]);
+
   if (!cells) {
     return <div>Loading game...</div>;
   }
@@ -181,22 +236,50 @@ export default function Room() {
             targetSum={10}
           />
 
-          {boardWidth !== null && !showGameOver && (
+          {boardWidth !== null && (
             <Timer
               boardWidth={boardWidth}
               time={timer}
               setTime={setTimer}
-              isPaused={showSettings || showLogin}
+              initialTime={60}
+              isPaused={false}
               onTimeUp={handleTimeUp}
             />
           )}
         </div>
 
-        <div className="app__sidebar">
-          <Score score={score1} opponentScore={score2} gameMode={gameMode} />
-          <Leaderboard gameMode={gameMode} />
+        <div
+          className="app__sidebar"
+          style={
+            gameContainerHeight != null
+              ? { maxHeight: gameContainerHeight }
+              : undefined
+          }
+        >
+          <Score
+            gameMode={gameMode}
+            me={{
+              name: myName,
+              rating: myRating,
+              wins: myWins,
+              losses: myLosses,
+              score: score1,
+            }}
+            opponent={{
+              name: opponentName,
+              rating: opponentRating,
+              wins: opponentWins,
+              losses: opponentLosses,
+              score: score2,
+            }}
+          />
+          <div className="leaderboard-wrapper">
+            <Leaderboard gameMode={gameMode} />
+          </div>
         </div>
       </div>
+
+      <BackToDashboard />
 
       <button
         className="app__settings-button"

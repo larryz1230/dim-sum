@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { handleSignUp } from '../services/api';
-import '../App.css'
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const Register: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    const { error: signUpError } = await handleSignUp(email, password);
+    const { error: signUpError } = await handleSignUp(email, password, username);
 
     if (signUpError) {
       setError(signUpError instanceof Error ? signUpError.message : 'Registration failed');
@@ -27,48 +27,55 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="app__login">
-      <div className="auth-wrapper">
-        <div className="auth-card">
-          <div className="auth-title">
-            <h2>Create a New Account</h2>
+    <div className="auth-wrapper">
+      <div className="auth-card">
+        <h2>Create a New Account</h2>
+        <p className="auth-subtitle">Join Dumpling Destroyer and start learning!</p>
+        
+        {error && <div className="error-banner">{error}</div>}
+
+        <form onSubmit={onRegisterSubmit}>
+          <div className="input-group">
+            <label>Username</label>
+            <input
+              type="text"
+              placeholder="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
           </div>
-          <p className="auth-subtitle">Join Dumpling Destroyer and start learning!</p>
-          
-          {error && <div className="error-banner">{error}</div>}
 
-          <form onSubmit={onRegisterSubmit}>
-            <div className="input-group">
-              <label>Email Address</label>
-              <input
-                type="email"
-                placeholder="user@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+          <div className="input-group">
+            <label>Email Address</label>
+            <input
+              type="email"
+              placeholder="user@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-            <div className="input-group">
-              <label>Password</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+          <div className="input-group">
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-            <button className="primary-btn" type="submit" disabled={loading}>
-              {loading ? 'Creating Account...' : 'Register'}
-            </button>
-          </form>
+          <button className="primary-btn" type="submit" disabled={loading}>
+            {loading ? 'Creating Account...' : 'Register'}
+          </button>
+        </form>
 
-          <p className="auth-footer">
-            Already have an account? <Link to="/login">Log in</Link>
-          </p>
-        </div>
+        <p className="auth-footer">
+          Already have an account? <Link to="/login">Log in</Link>
+        </p>
       </div>
     </div>
   );

@@ -1,4 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSound } from "../hooks/useSound";
+import { playBunSound } from "../utils/sound";
 import { GameBoard } from "../components/GameBoard";
 import { Settings } from "../components/Settings";
 import { Login } from "../components/Login";
@@ -6,8 +9,8 @@ import { Timer } from "../components/Timer";
 import { GameOver } from "../components/GameOver";
 import { Score } from "../components/Score";
 import { Leaderboard } from "../components/Leaderboard";
+import BackToDashboard from "../components/BackToDashboard/BackToDashboard";
 
-// WHY ISN:
 import settingsIcon from "../imgs/Settings.png";
 
 import "../App.css";
@@ -45,6 +48,8 @@ const createSampleBoard = (rows = 12, cols = 10): Board => {
 };
 
 export default function App(): React.ReactElement {
+  const navigate = useNavigate();
+  const { soundOn } = useSound();
   const [cells, setCells] = useState<Board>(() => createSampleBoard(13, 17));
   const [selectedCellIds, setSelectedCellIds] = useState<Set<string>>(
     () => new Set(),
@@ -60,6 +65,17 @@ export default function App(): React.ReactElement {
   const [timer, setTimer] = useState(120);
 
   const boardContainerRef = useRef<HTMLDivElement>(null);
+  const [gameContainerHeight, setGameContainerHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = boardContainerRef.current;
+    if (!el) return;
+    const update = () => setGameContainerHeight(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [cells]);
 
   const handleSelectionChange = (newSelection: Set<string>) => {
     setSelectedCellIds(newSelection);
@@ -77,7 +93,10 @@ export default function App(): React.ReactElement {
       }
     }
 
-    if (clearedCount > 0) setScore((prev) => prev + clearedCount);
+    if (clearedCount > 0) {
+      if (soundOn) playBunSound();
+      setScore((prev) => prev + clearedCount);
+    }
     setCells(updatedCells);
   };
 
@@ -120,7 +139,11 @@ export default function App(): React.ReactElement {
     <div className="app">
       <div className="app__main-content">
         <div className="app__game-container" ref={boardContainerRef}>
-          <GameBoard
+          <div className="app__game-board-wrap">
+            {(showSettings || showLogin) && (
+              <div className="app__game-board-overlay" aria-hidden />
+            )}
+            <GameBoard
             cells={cells}
             selectedCellIds={selectedCellIds}
             onSelectionChange={handleSelectionChange}
@@ -129,9 +152,10 @@ export default function App(): React.ReactElement {
             isSinglePlayer={true}
             disabled={showSettings || showLogin}
             targetSum={10}
-          />
+            />
+          </div>
 
-          {boardWidth !== null && !showGameOver && (
+          {boardWidth !== null && (
             <Timer
               key={gameKey}
               boardWidth={boardWidth}
@@ -143,11 +167,22 @@ export default function App(): React.ReactElement {
           )}
         </div>
 
-        <div className="app__sidebar">
+        <div
+          className="app__sidebar"
+          style={
+            gameContainerHeight != null
+              ? { maxHeight: gameContainerHeight }
+              : undefined
+          }
+        >
           <Score score={score} gameMode={gameMode} />
-          <Leaderboard gameMode={gameMode} />
+          <div className="leaderboard-wrapper">
+            <Leaderboard gameMode={gameMode} />
+          </div>
         </div>
       </div>
+
+      <BackToDashboard />
 
       <button
         className="app__settings-button"
@@ -163,6 +198,8 @@ export default function App(): React.ReactElement {
             setShowSettings(false);
             setShowLogin(true);
           }}
+          onProfileClick={() => navigate('/dashboard')}
+          onLeaderboardClick={() => navigate('/dashboard', { state: { panel: 'leaderboard' } })}
           gameMode={gameMode}
           onGameModeChange={setGameMode}
         />

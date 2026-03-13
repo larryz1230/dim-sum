@@ -1,35 +1,107 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
 .score-panel {
-  background-color: #8C3322;
-  border: 6px solid #482E1D;
-  border-radius: 6px;
-  padding: 20px 30px;
-  min-width: 200px;
+  font-family: 'Nunito', sans-serif;
+  background: linear-gradient(180deg, #9a3a27 0%, #7f2f20 100%);
+  border: 4px solid #482e1d;
+  border-radius: 14px;
+  padding: 18px;
+  min-width: 240px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  color: white;
+}
+
+.score-panel__header {
+  margin-bottom: 14px;
+}
+
+.score-panel__title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.score-panel__players {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+  gap: 12px;
 }
 
-.score-panel__row {
+.score-panel__player {
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 14px;
+  backdrop-filter: blur(2px);
+}
+
+.score-panel__player--single {
+  padding: 18px 16px;
+}
+
+.score-panel__top-row {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
-.score-panel__label {
-  font-family: 'Nunito', sans-serif;
-  font-size: 22px;
-  font-weight: 600;
-  color: white;
-}
-
-.score-panel__value {
-  font-family: 'Nunito', sans-serif;
-  font-size: 22px;
+.score-panel__role {
+  font-size: 11px;
   font-weight: 700;
-  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+  margin-bottom: 2px;
 }
 
+.score-panel__name {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.score-panel__score {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  min-width: 40px;
+  text-align: right;
+}
+
+.score-panel__meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.score-panel__meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(72, 46, 29, 0.45);
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
+.score-panel__meta-label {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.score-panel__meta-value {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.score-panel__divider {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.75;
+}

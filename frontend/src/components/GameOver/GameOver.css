@@ -74,6 +74,10 @@
   text-transform: uppercase;
 }
 
+.game-over-title--singleplayer {
+  font-size: 40px;
+}
+
 .game-over-button {
   font-family: 'Nunito', sans-serif;
   font-size: 19px;

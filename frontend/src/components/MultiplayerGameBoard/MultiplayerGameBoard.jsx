@@ -4,9 +4,10 @@
  * Based on Figma design: 12 rows x 10 columns grid
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameCell } from './GameCell.jsx';
 import './GameBoard.css';
+import { playBunSound } from '../../utils/sound.js';
 
 export const MultiplayerGameBoard = ({
   cells,
@@ -30,6 +31,12 @@ export const MultiplayerGameBoard = ({
   const boardRef = useRef(null);
   const startPosRef = useRef(null);
   const endPosRef = useRef(null);
+
+  // animation related
+  const [clearingCellIds, setClearingCellIds] = useState(new Set());
+  const [isResolvingSelection, setIsResolvingSelection] = useState(false);
+  const [pendingRemovalCellIds, setPendingRemovalCellIds] = useState(new Set());
+  const boardInteractionDisabled = disabled || isResolvingSelection;
   
   // Use external or internal state
   const selectedCellIds = externalSelectedCellIds ?? internalSelectedCellIds;
@@ -91,35 +98,80 @@ export const MultiplayerGameBoard = ({
     return { row: clampedRow, col: clampedCol };
   }, [cells]);
 
-  // Calculate cells in box selection from positions
+  // Get pixel bounds of a cell relative to the grid (for 80% coverage check)
+  const getCellBoundsInGrid = useCallback((row, col) => {
+    if (!gridRef.current || !cells.length || !cells[0]?.length) return null;
+    const firstRow = gridRef.current.children[0];
+    if (!firstRow?.children?.[0]) return null;
+    const firstCell = firstRow.children[0];
+    const cellWidth = firstCell.offsetWidth;
+    const cellHeight = firstCell.offsetHeight;
+    let colGap = 6;
+    if (firstRow.children[1]) {
+      const r0 = firstRow.children[0].getBoundingClientRect();
+      const r1 = firstRow.children[1].getBoundingClientRect();
+      colGap = r1.left - r0.right;
+    }
+    let rowGap = 6;
+    if (gridRef.current.children[1]) {
+      const row0 = gridRef.current.children[0];
+      const row1 = gridRef.current.children[1];
+      rowGap = row1.offsetTop - row0.offsetTop - row0.offsetHeight;
+    }
+    const cellSizeX = cellWidth + colGap;
+    const cellSizeY = cellHeight + rowGap;
+    const rowWidth = firstRow.offsetWidth;
+    const totalCellsWidth = cells[0].length * cellSizeX - colGap;
+    const centeringOffset = Math.max(0, (rowWidth - totalCellsWidth) / 2);
+    return {
+      left: centeringOffset + col * cellSizeX,
+      top: row * cellSizeY,
+      width: cellWidth,
+      height: cellHeight,
+    };
+  }, [cells]);
+
+  // Check if at least 80% of a cell is covered by the selection box
+  const isCellAtLeast80PercentCovered = useCallback((cell, boxStartPos, boxEndPos) => {
+    if (!boxStartPos || !boxEndPos) return false;
+    const cellBounds = getCellBoundsInGrid(cell.row, cell.col);
+    if (!cellBounds) return false;
+    const boxLeft = Math.min(boxStartPos.x, boxEndPos.x);
+    const boxTop = Math.min(boxStartPos.y, boxEndPos.y);
+    const boxRight = Math.max(boxStartPos.x, boxEndPos.x);
+    const boxBottom = Math.max(boxStartPos.y, boxEndPos.y);
+    const overlapLeft = Math.max(boxLeft, cellBounds.left);
+    const overlapTop = Math.max(boxTop, cellBounds.top);
+    const overlapRight = Math.min(boxRight, cellBounds.left + cellBounds.width);
+    const overlapBottom = Math.min(boxBottom, cellBounds.top + cellBounds.height);
+    const overlapWidth = Math.max(0, overlapRight - overlapLeft);
+    const overlapHeight = Math.max(0, overlapBottom - overlapTop);
+    const overlapArea = overlapWidth * overlapHeight;
+    const cellArea = cellBounds.width * cellBounds.height;
+    if (cellArea <= 0) return false;
+    return overlapArea / cellArea >= 0.65;
+  }, [getCellBoundsInGrid]);
+
+  // Calculate cells in box selection from positions (80% coverage rule)
   const getCellsInBoxFromPositions = useCallback((startPos, endPos) => {
     if (!startPos || !endPos) return [];
-    
-    const startCell = positionToCell(startPos);
-    const endCell = positionToCell(endPos);
-    if (!startCell || !endCell) return [];
-    
-    const minRow = Math.min(startCell.row, endCell.row);
-    const maxRow = Math.max(startCell.row, endCell.row);
-    const minCol = Math.min(startCell.col, endCell.col);
-    const maxCol = Math.max(startCell.col, endCell.col);
-    
     const cellsInBox = [];
-    for (let row = minRow; row <= maxRow; row++) {
-      for (let col = minCol; col <= maxCol; col++) {
-        if (cells[row] && cells[row][col] && cells[row][col].value !== 0) {
-          cellsInBox.push(cells[row][col].id);
+    for (let row = 0; row < cells.length; row++) {
+      for (let col = 0; col < (cells[row]?.length ?? 0); col++) {
+        const cell = cells[row][col];
+        if (cell && cell.value !== 0 && isCellAtLeast80PercentCovered(cell, startPos, endPos)) {
+          cellsInBox.push(cell.id);
         }
       }
     }
     return cellsInBox;
-  }, [cells, positionToCell]);
+  }, [cells, isCellAtLeast80PercentCovered]);
 
   // Handle mouse down - start box selection (left button only).
   // We attach document listeners HERE immediately, not in useEffect. Otherwise a fast click
   // (mousedown then quick mouseup) can fire mouseup before useEffect runs, and we miss it.
   const handleMouseDown = useCallback((e) => {
-    if (disabled || e.button !== 0) return;
+    if (boardInteractionDisabled || e.button !== 0) return;
     const pos = getGridPosition(e);
     if (!pos) return;
 
@@ -152,7 +204,9 @@ export const MultiplayerGameBoard = ({
               }
             }
           }
-          if (sum === targetSum) onSelectionEnd?.(cellsInBox);
+          if (sum === targetSum) {
+            animateAndSubmit(cellsInBox);
+          }
         }
         if (onSelectionChange) onSelectionChange(new Set());
         else if (!isControlled) setInternalSelectedCellIds(new Set());
@@ -216,20 +270,11 @@ export const MultiplayerGameBoard = ({
     );
   }
 
-  // Check if cell is in current box selection
+  // Check if cell is in current box selection (80% coverage rule)
   const isCellInBox = useCallback((cell) => {
     if (!isDragging || !startPos || !endPos) return false;
-    const startCell = positionToCell(startPos);
-    const endCell = positionToCell(endPos);
-    if (!startCell || !endCell) return false;
-    
-    const minRow = Math.min(startCell.row, endCell.row);
-    const maxRow = Math.max(startCell.row, endCell.row);
-    const minCol = Math.min(startCell.col, endCell.col);
-    const maxCol = Math.max(startCell.col, endCell.col);
-    return cell.row >= minRow && cell.row <= maxRow && 
-           cell.col >= minCol && cell.col <= maxCol;
-  }, [isDragging, startPos, endPos, positionToCell]);
+    return isCellAtLeast80PercentCovered(cell, startPos, endPos);
+  }, [isDragging, startPos, endPos, isCellAtLeast80PercentCovered]);
 
   // Calculate selection box position and size
   const getSelectionBoxStyle = () => {
@@ -253,10 +298,98 @@ export const MultiplayerGameBoard = ({
     };
   };
 
+  // animation related
+  const sortCellIdsLeftToRight = (cellIds) => {
+    return [...cellIds].sort((a, b) => {
+      const [, rowA, colA] = a.split('-').map(Number);
+      const [, rowB, colB] = b.split('-').map(Number);
+
+      if (rowA !== rowB) {
+        return rowA - rowB;
+      }
+      return colA - colB;
+    });
+  };
+
+  const animateAndSubmit = useCallback((cellIds) => {
+    const ordered = sortCellIdsLeftToRight(cellIds);
+    const staggerMs = 70;
+    const animMs = 420;
+
+    setIsResolvingSelection(true);
+    setClearingCellIds(new Set());
+    setPendingRemovalCellIds((prev) => {
+      const next = new Set(prev);
+      ordered.forEach((id) => next.delete(id));
+      return next;
+    });
+
+    ordered.forEach((id, index) => {
+      window.setTimeout(() => {
+        setClearingCellIds((prev) => {
+          const next = new Set(prev);
+          next.add(id);
+          return next;
+        });
+
+        playBunSound();
+      }, index * staggerMs);
+    });
+
+    const totalMs = (ordered.length - 1) * staggerMs + animMs;
+
+    window.setTimeout(() => {
+      // Move from "animating" to "hidden while waiting for server"
+      setClearingCellIds((prev) => {
+        const next = new Set(prev);
+        ordered.forEach((id) => next.delete(id));
+        return next;
+      });
+
+      setPendingRemovalCellIds((prev) => {
+        const next = new Set(prev);
+        ordered.forEach((id) => next.add(id));
+        return next;
+      });
+
+      onSelectionEnd?.(ordered);
+      setIsResolvingSelection(false);
+    }, totalMs);
+  }, [onSelectionEnd]);
+
+  useEffect(() => {
+    setPendingRemovalCellIds((prev) => {
+      if (prev.size === 0) return prev;
+
+      const next = new Set(prev);
+
+      for (const id of prev) {
+        let foundCell = null;
+
+        for (const row of cells) {
+          for (const cell of row) {
+            if (cell.id === id) {
+              foundCell = cell;
+              break;
+            }
+          }
+          if (foundCell) break;
+        }
+
+        // If the cell is gone or has value 0, server has caught up
+        if (!foundCell || foundCell.value === 0) {
+          next.delete(id);
+        }
+      }
+
+      return next;
+    });
+  }, [cells]);
+
   return (
     <div 
       ref={boardRef}
-      className={`game-board ${disabled ? 'game-board--disabled' : ''}`}
+      className={`game-board ${boardInteractionDisabled ? 'game-board--disabled' : ''}`}
       onMouseDown={handleMouseDown}
       style={{ cursor: isDragging ? 'crosshair' : 'default', userSelect: 'none' }}
     >
@@ -270,8 +403,15 @@ export const MultiplayerGameBoard = ({
               <GameCell
                 key={cell.id}
                 cell={cell}
-                isSelected={isDragging && isCellInBox(cell)}
-                disabled={disabled}
+                isSelected={
+                  isDragging &&
+                  isCellInBox(cell) &&
+                  !clearingCellIds.has(cell.id) &&
+                  !pendingRemovalCellIds.has(cell.id)
+                }
+                isClearing={clearingCellIds.has(cell.id)}
+                isPendingRemoval={pendingRemovalCellIds.has(cell.id)}
+                disabled={boardInteractionDisabled}
               />
             ))}
           </div>
