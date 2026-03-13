@@ -22,13 +22,14 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-width: 850px;
-  min-height: 480px;
+  max-width: 800px;
+  min-width: 800px;
   background-color: #8C3322;
   border: 6px solid #482E1D;
   border-radius: 16px;
   padding: 24px;
   gap: 24px;
+  margin: 24px;
 }
 
 .profile-expanded__top-row {
@@ -85,23 +86,6 @@
   font-size: 1.5rem;
   color: #E7BC9B;
   margin: 4px 0 0 0;
-}
-
-.profile-expanded__bio-section {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 80px;
-  overflow: hidden;
-}
-
-.profile-expanded__animated-bun {
-  width: 120px;
-  height: 50px;
-  object-fit: cover;
-  object-position: center center;
-  display: block;
 }
 
 .profile-expanded__bio {
