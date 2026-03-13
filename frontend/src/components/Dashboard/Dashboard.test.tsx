@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { describe, it, expect, vi } from "vitest";
 import Dashboard from "./Dashboard";
@@ -115,44 +115,50 @@ describe("Dashboard.navigate", () => {
 
 // Buttons for profile and leaderboard expand within the dashboard page
 describe("Dashboard.expanded", () => {
-    it("opens profile panel", () => {
+    it("opens profile panel", async () => {
         render(
             <MemoryRouter>
-            <Dashboard />
+                <Dashboard />
             </MemoryRouter>
         );
 
         fireEvent.click(screen.getByText("Profile"));
 
-        expect(screen.getByText("Profile Expanded")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText("Profile Expanded")).toBeInTheDocument();
+        });
     });
 
-    it("opens leaderboard panel", () => {
+    it("opens leaderboard panel", async () => {
         render(
             <MemoryRouter>
-            <Dashboard />
+                <Dashboard />
             </MemoryRouter>
         );
 
         fireEvent.click(screen.getByText("Leaderboard"));
 
-        expect(screen.getByText("Leaderboard Expanded")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText("Leaderboard Expanded")).toBeInTheDocument();
+        });
     });
 
     // Back button returns to the main view of 4 buttons, including singleplayer
-    it("back button closes panel", () => {
+    it("back button closes panel", async () => {
         render(
             <MemoryRouter>
-            <Dashboard />
+                <Dashboard />
             </MemoryRouter>
         );
 
         fireEvent.click(screen.getByText("Profile"));
 
-        const backButton = screen.getByAltText("Back");
+        const backButton = await screen.findByAltText("Back");
         fireEvent.click(backButton);
 
-        expect(screen.getByText("Singleplayer")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText("Singleplayer")).toBeInTheDocument();
+        });
     });
 });
 
@@ -161,7 +167,7 @@ describe("Dashboard.multiplayer", () => {
     it("opens matchmake popup", () => {
         render(
             <MemoryRouter>
-            <Dashboard />
+                <Dashboard />
             </MemoryRouter>
         );
 
@@ -176,7 +182,7 @@ describe("Dashboard.settings", () => {
     it("opens settings", () => {
         render(
             <MemoryRouter>
-            <Dashboard />
+                <Dashboard />
             </MemoryRouter>
         );
 
@@ -189,7 +195,7 @@ describe("Dashboard.settings", () => {
     it("opens login from settings", () => {
         render(
             <MemoryRouter>
-            <Dashboard />
+                <Dashboard />
             </MemoryRouter>
         );
 

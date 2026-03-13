@@ -40,7 +40,22 @@ vi.mock("../../hooks/useSound", () => ({
     })
 }));
 
-// 
+// Auth mock
+vi.mock("../../hooks/useAuth", () => ({
+  useAuth: () => ({
+    user: { id: "123" },
+    loading: false,
+    rating: null,
+    username: null,
+    email: null,
+    matchesPlayed: 0,
+    wins: 0,
+    losses: 0,
+    ties: 0,
+    refreshProfile: vi.fn()
+  })
+}));
+
 beforeEach(() => {
     vi.clearAllMocks();
     darkMode = false;
