@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MultiplayerGameBoard } from "./MultiplayerGameBoard.jsx";
@@ -134,7 +134,7 @@ describe("MultiplayerGameBoard.selection", () => {
 
 // The game board is updated when the sum within the selection box is equivalent to the target sum
 describe("MultiplayerGameBoard.clear", () => {
-  it("clears cells when selected sum equals target sum", () => {
+  it("clears cells when selected sum equals target sum", async () => {
     const onSelectionEnd = vi.fn();
     const { container } = render(
       <MultiplayerGameBoard
@@ -153,6 +153,8 @@ describe("MultiplayerGameBoard.clear", () => {
     fireEvent.mouseMove(document, { clientX: 220, clientY: 100, buttons: 1 });
     fireEvent.mouseUp(document, { button: 0 });
 
-    expect(onSelectionEnd).toHaveBeenCalledWith(["c1", "c2"]);
+    await waitFor(() => {
+      expect(onSelectionEnd).toHaveBeenCalledWith(["c1", "c2"]);
+    });
   });
 });
