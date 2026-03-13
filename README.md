@@ -2,7 +2,7 @@ Run project (root directory): npm run dev
 npm install in both directories
 Currently using concurrently for frontend + backend
 
-Vitest (frontend) <br>
+Vitest (in either backend or frontend directory) <br>
 run vitest: npm run test, npx vitest <br>
 
 view vitest through browser ui: npm run test:ui <br>
