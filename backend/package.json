@@ -27,6 +27,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "vitest",
+    "test:ui": "vitest --ui",
     "coverage": "vitest run --coverage"
   },
   "keywords": [],
