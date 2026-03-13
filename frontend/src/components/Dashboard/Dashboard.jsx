@@ -53,9 +53,6 @@ export default function Dashboard() {
   return (
     <div className="app dashboard-page">
       <div className="dashboard">
-        {/* <div className="dashboard__header">
-          <h1>Dashboard</h1>
-        </div> */}
         {activePanel === null ? (
           <div className="dashboard__buttons fade-in">
             <button className="dashboard__button" onClick={() => navigate('/game')}>
@@ -85,8 +82,12 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="dashboard__expanded fade-in">
-            {activePanel === 'profile' && <ProfileExpanded />}
-            {activePanel === 'leaderboard' && <LeaderboardExpanded />}
+            {activePanel === 'profile' && (
+              <ProfileExpanded key={`profile-${Date.now()}`} />
+            )}
+            {activePanel === 'leaderboard' && (
+              <LeaderboardExpanded key={`lb-${Date.now()}`} />
+            )}
           </div>
         )}
       </div>
