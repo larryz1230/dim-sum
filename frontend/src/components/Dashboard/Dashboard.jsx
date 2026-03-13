@@ -24,9 +24,14 @@ export default function Dashboard() {
   const [showMatchmakePopup, setShowMatchmakePopup] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [activePanel, setActivePanel] = useState(
-    null // 'profile' | 'leaderboard'
-  );
+  const [activePanel, setActivePanel] = useState(null);
+
+  const handlePanelOpen = (panelName) => {
+    setActivePanel(null);
+    setTimeout(() => {
+      setActivePanel(panelName);
+    }, 10);
+  };
 
   useEffect(() => {
     const panel = location.state?.panel;
@@ -67,13 +72,13 @@ export default function Dashboard() {
               </span>
               Multiplayer
             </button>
-            <button className="dashboard__button" onClick={() => setActivePanel('profile')}>
+            <button className="dashboard__button" onClick={() => handlePanelOpen('profile')}>
               <span className="dashboard__button-img-wrap">
                 <img src={happyBunImg} alt="" />
               </span>
               Profile
             </button>
-            <button className="dashboard__button" onClick={() => setActivePanel('leaderboard')}>
+            <button className="dashboard__button" onClick={() => handlePanelOpen('leaderboard')}>
               <span className="dashboard__button-img-wrap">
                 <img src={goldBunImg} alt="" />
               </span>
@@ -120,8 +125,8 @@ export default function Dashboard() {
             setShowSettings(false);
             setShowLogin(true);
           }}
-          onProfileClick={() => setActivePanel('profile')}
-          onLeaderboardClick={() => setActivePanel('leaderboard')}
+          onProfileClick={() => handlePanelOpen('profile')}
+          onLeaderboardClick={() => handlePanelOpen('leaderboard')}
           gameMode="singleplayer"
           onGameModeChange={() => {}}
         />
