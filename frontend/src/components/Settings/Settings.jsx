@@ -15,6 +15,8 @@ export const Settings = ({ onClose }) => {
     onClose?.();
     try {
       await handleSignOut();
+    } catch (err) {
+      console.error("Error failing to signout:", err);
     } finally {
       navigate('/login', { replace: true });
     }

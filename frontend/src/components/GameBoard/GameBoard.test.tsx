@@ -8,60 +8,61 @@ vi.mock("./GameCell", () => ({
   GameCell: ({ cell, isSelected }: 
             { cell: any; isSelected: boolean }) => (
     <div
-      data-testid="game-cell"
-      data-id={cell.id}
-      data-selected={isSelected}
+        data-testid="game-cell"
+        data-id={cell.id}
+        data-selected={isSelected}
     >
-      {cell.value}
+        {cell.value}
     </div>
   )
 }));
 
+// Board template for testing
 const createBoard = () => [
-  [
-    { id: "c1", value: 5, row: 0, col: 0 },
-    { id: "c2", value: 5, row: 0, col: 1 }
-  ]
+    [
+        { id: "c1", value: 5, row: 0, col: 0 },
+        { id: "c2", value: 5, row: 0, col: 1 }
+    ]
 ];
 
 beforeEach(() => {
-  // Store rects per element
-  const mockRects: Map<HTMLElement, DOMRect> = new Map();
-  
-  HTMLElement.prototype.getBoundingClientRect = vi.fn(function(this: HTMLElement) {
+    // Store rects per element
+    const mockRects: Map<HTMLElement, DOMRect> = new Map();
+
+    HTMLElement.prototype.getBoundingClientRect = vi.fn(function(this: HTMLElement) {
     // Create rectangle for element if it doesnt exist
     if (!mockRects.has(this)) {
-      const isBoard = this.className?.includes('game-board') && !this.className?.includes('__');
-      const isGrid = this.className?.includes('game-board__grid');
-      
-      if (isBoard) {
-        mockRects.set(this, new DOMRect(0, 0, 250, 150));
-      } else if (isGrid) {
-        mockRects.set(this, new DOMRect(0, 0, 250, 150));
-      } else {
-        mockRects.set(this, new DOMRect(0, 0, 100, 100));
-      }
+        const isBoard = this.className?.includes("game-board") && !this.className?.includes("__");
+        const isGrid = this.className?.includes("game-board__grid");
+        
+        if (isBoard || isGrid) {
+            mockRects.set(this, new DOMRect(0, 0, 250, 150));
+        } else {
+            mockRects.set(this, new DOMRect(0, 0, 100, 100));
+        }
     }
-    return mockRects.get(this)!;
-  });
+        return mockRects.get(this)!;
+    });
 
-  Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-    configurable: true,
-    value: 100
-  });
+    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+        configurable: true,
+        value: 100
+    });
 
-  Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-    configurable: true,
-    value: 100
-  });
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+        configurable: true,
+        value: 100
+    });
 
-  Object.defineProperty(HTMLElement.prototype, "offsetTop", {
-    configurable: true,
-    value: 0
-  });
+    Object.defineProperty(HTMLElement.prototype, "offsetTop", {
+        configurable: true,
+        value: 0
+    });
 });
 
 // Tests
+
+// The state is loading when the cells are empty
 describe("GameBoard.empty", () => {
     it("renders a loading state when there are no cells", () => {
         render(
@@ -78,6 +79,7 @@ describe("GameBoard.empty", () => {
     });
 });
 
+// The game cells are rendered when their length is greater than 0
 describe("GameBoard.nonempty", () => {
     it("renders game cells when the board is nonempty", () => {
         render(
@@ -96,6 +98,7 @@ describe("GameBoard.nonempty", () => {
     });
 });
 
+// The disabled class is applied when the game board is disabled
 describe("GameBoard.disabled", () => {
     it("applies disabled class when disabled", () => {
         const { container } = render(
@@ -113,6 +116,7 @@ describe("GameBoard.disabled", () => {
     });
 });
 
+// The selection box is rendered when the player clicks down and drags the mouse
 describe("GameBoard.selection", () => {
     it("shows selection box when dragging", () => {
         const { container } = render(
@@ -136,19 +140,20 @@ describe("GameBoard.selection", () => {
     });
 });
 
+// The game board is updated when the sum within the selection box is equivalent to the target sum
 describe("GameBoard.clear", () => {
     it("clears cells when selected sum equals target sum", () => {
         const onCellsUpdate = vi.fn();
         const onSelectionChange = vi.fn();
         const { container } = render(
             <GameBoard
-            cells={createBoard()}
-            selectedCellIds={new Set()}
-            onCellClick={() => {}}
-            onSelectionChange={onSelectionChange}
-            onCellsUpdate={onCellsUpdate}
-            targetSum={10}
-            isSinglePlayer
+                cells={createBoard()}
+                selectedCellIds={new Set()}
+                onCellClick={() => {}}
+                onSelectionChange={onSelectionChange}
+                onCellsUpdate={onCellsUpdate}
+                targetSum={10}
+                isSinglePlayer
             />
         );
 
@@ -164,6 +169,7 @@ describe("GameBoard.clear", () => {
     });
 });
 
+// Multiplayer mode emits a socket with a roomId
 describe("GameBoard.multiplayer", () => {
     it("emits socket update in multiplayer", () => {
         const emit = vi.fn();
@@ -172,14 +178,14 @@ describe("GameBoard.multiplayer", () => {
 
         const { container } = render(
             <GameBoard
-            cells={createBoard()}
-            selectedCellIds={new Set()}
-            onCellClick={() => {}}
-            onSelectionChange={() => {}}
-            onCellsUpdate={() => {}}
-            targetSum={10}
-            socketRef={socketRef}
-            matchId={"room1" as any}
+                cells={createBoard()}
+                selectedCellIds={new Set()}
+                onCellClick={() => {}}
+                onSelectionChange={() => {}}
+                onCellsUpdate={() => {}}
+                targetSum={10}
+                socketRef={socketRef}
+                matchId={"room1" as any}
             />
         );
 
